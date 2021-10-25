@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/jordanopensource/top-contributors-api#readme",
   "dependencies": {
+    "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "helmet": "^4.6.0",
     "mongoose": "^6.0.12",
