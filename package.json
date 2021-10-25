@@ -10,6 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/jordanopensource/top-contributors-api.git"
   },
+  "type": "module",
   "author": "Mohamad Berjawi",
   "license": "MIT",
   "bugs": {
