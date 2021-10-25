@@ -1,0 +1,27 @@
+{
+  "name": "top-contributors-api",
+  "version": "1.0.0",
+  "description": "The REST API for the top contributors website",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordanopensource/top-contributors-api.git"
+  },
+  "author": "Mohamad Berjawi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jordanopensource/top-contributors-api/issues"
+  },
+  "homepage": "https://github.com/jordanopensource/top-contributors-api#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "helmet": "^4.6.0",
+    "mongoose": "^6.0.12",
+    "morgan": "^1.10.0",
+    "nodemon": "^2.0.14",
+    "response-time": "^2.3.2"
+  }
+}
