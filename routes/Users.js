@@ -26,4 +26,13 @@ router.get("/users", async (req, res) => {
   });
 });
 
+router.get("/users/:username", async (req, res) => {
+  let { username } = req.params;
+  let user = await User.findOne({ username: username });
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
+});
+
 export default router;
