@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
+import mongoose from "mongoose";
 import morgan from "morgan";
 import responseTime from "response-time";
 import helmet from "helmet";
@@ -19,6 +20,15 @@ if (process.env.NODE_ENV !== "production") {
   app.use(responseTime());
 }
 
-app.listen(port, () => {
+const ConnectToDB = async () => {
+  await mongoose.connect(process.env.DB_URL, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
+  console.log("Connected to the database");
+};
+
+app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
+  await ConnectToDB();
 });
