@@ -31,8 +31,8 @@ const ConnectToDB = async () => {
   console.log("Connected to the database");
 };
 
-app.use("/api", usersRoute);
-app.use("/api", organizationsRoute);
+app.use("/api/v1", usersRoute);
+app.use("/api/v1", organizationsRoute);
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
