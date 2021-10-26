@@ -6,23 +6,23 @@ import User from "../models/user.js";
 const router = express.Router();
 
 router.get("/users", async (req, res) => {
-  let users = [];
-  let { sort, limit } = req.query;
+  let { sort, limit, page } = req.query;
   limit = limit ? Number(limit) : 100;
+  let users = [];
   switch (sort) {
     case "asc":
-      users = await User.find().sort({ score: 1 }).limit(limit);
+      users = await User.paginate({}, { page, limit, sort: { score: 1 } });
       break;
     case "desc":
-      users = await User.find().sort({ score: -1 }).limit(limit);
+      users = await User.paginate({}, { page, limit, sort: { score: -1 } });
       break;
     default:
-      users = await User.find().sort({}).limit(limit);
+      users = await User.paginate({}, { page, limit, sort: {} });
       break;
   }
   res.status(200).json({
     success: true,
-    data: users,
+    users,
   });
 });
 
