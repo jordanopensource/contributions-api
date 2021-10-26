@@ -5,6 +5,8 @@ import morgan from "morgan";
 import responseTime from "response-time";
 import helmet from "helmet";
 
+import usersRoute from "./routes/Users.js";
+
 dotenv.config({
   path: "./config.env",
 });
@@ -27,6 +29,8 @@ const ConnectToDB = async () => {
   });
   console.log("Connected to the database");
 };
+
+app.use("/api", usersRoute);
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
