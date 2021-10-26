@@ -76,7 +76,7 @@ const router = express.Router();
  *  @swagger
  *  /api/v1/users:
  *    get:
- *      summary: Returns the list of all Users
+ *      summary: Returns the list of all the Users
  *      tags: [Users]
  *      parameters:
  *        - in: query
@@ -159,7 +159,7 @@ router.get("/users/:username", async (req, res) => {
  *  @swagger
  *  /api/v1/users/{username}/commits:
  *    get:
- *      summary: Returns the contributions for a specific User
+ *      summary: Returns a list of contributions for a given User
  *      tags: [Users]
  *      parameters:
  *        - in: path
