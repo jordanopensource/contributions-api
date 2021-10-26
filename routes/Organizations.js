@@ -5,7 +5,7 @@ import Organization from "../models/organization.js";
 
 const router = express.Router();
 
-router.get("/organizations", async (req, res) => {
+router.get("/orgs", async (req, res) => {
   let { limit, page } = req.query;
   page = !page ? 1 : page;
   limit = limit ? Number(limit) : 100;
@@ -16,13 +16,13 @@ router.get("/organizations", async (req, res) => {
   res.status(200).json({ success: true, organizations });
 });
 
-router.get("/organizations/:username", async (req, res) => {
+router.get("/orgs/:username", async (req, res) => {
   let { username } = req.params;
   let org = await Organization.findOne({ username: username });
   res.status(200).json({ success: true, org });
 });
 
-router.get("/organizations/:username/repos", async (req, res) => {
+router.get("/orgs/:username/repos", async (req, res) => {
   let { username } = req.params;
   let orgRepositories = await Organization.findOne(
     { username: username },
