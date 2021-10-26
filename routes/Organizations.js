@@ -77,7 +77,7 @@ const router = express.Router();
  *          name: sort
  *          schema:
  *            type: string
- *          description: Sort the organizations by their score ascending or descending, use asc or desc
+ *          description: Sort the organizations by their repositories number ascending or descending, use asc or desc
  *      responses:
  *        200:
  *          description: The list of organizations
