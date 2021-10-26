@@ -22,4 +22,13 @@ router.get("/organizations/:username", async (req, res) => {
   res.status(200).json({ success: true, org });
 });
 
+router.get("/organizations/:username/repos", async (req, res) => {
+  let { username } = req.params;
+  let orgRepositories = await Organization.findOne(
+    { username: username },
+    "repositories"
+  );
+  res.status(200).json({ success: true, data: orgRepositories });
+});
+
 export default router;
