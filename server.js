@@ -6,6 +6,7 @@ import responseTime from "response-time";
 import helmet from "helmet";
 
 import usersRoute from "./routes/Users.js";
+import organizationsRoute from "./routes/Organizations.js";
 
 dotenv.config({
   path: "./config.env",
@@ -31,6 +32,7 @@ const ConnectToDB = async () => {
 };
 
 app.use("/api", usersRoute);
+app.use("/api", organizationsRoute);
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
