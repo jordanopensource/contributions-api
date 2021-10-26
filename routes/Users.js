@@ -35,4 +35,16 @@ router.get("/users/:username", async (req, res) => {
   });
 });
 
+router.get("/users/:username/commits", async (req, res) => {
+  let { username } = req.params;
+  let userCommits = await User.findOne(
+    { username: username },
+    "commit_contributions"
+  );
+  res.status(200).json({
+    success: true,
+    data: userCommits.commit_contributions,
+  });
+});
+
 export default router;
