@@ -15,7 +15,6 @@ const userSchema = new Schema(
     },
     avatar_url: {
       type: String,
-      required: true,
     },
     name: {
       type: String,
@@ -35,7 +34,6 @@ const userSchema = new Schema(
     github_profile_url: {
       // html_url
       type: String,
-      required: true,
     },
     user_createdAt: {
       type: String,
