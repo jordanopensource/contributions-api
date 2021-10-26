@@ -73,6 +73,11 @@ const router = express.Router();
  *          schema:
  *            type: integer
  *          description: The page number to return the organizations from
+ *        - in: query
+ *          name: sort
+ *          schema:
+ *            type: string
+ *          description: Sort the organizations by their score ascending or descending, use asc or desc
  *      responses:
  *        200:
  *          description: The list of organizations
@@ -86,14 +91,28 @@ const router = express.Router();
  *           description: Check your internet connection
  */
 router.get("/orgs", async (req, res) => {
-  let { limit, page } = req.query;
+  let { limit, page, sort } = req.query;
   page = !page ? 1 : page;
   limit = limit ? Number(limit) : 100;
-  let organizations = await Organization.paginate(
-    {},
-    { page: page, limit: limit }
-  );
-  res.status(200).json({ success: true, organizations });
+  let orgs = [];
+  switch (sort) {
+    case "asc":
+      orgs = await Organization.paginate(
+        {},
+        { page, limit, sort: { repositories_count: 1 } }
+      );
+      break;
+    case "desc":
+      orgs = await Organization.paginate(
+        {},
+        { page, limit, sort: { repositories_count: -1 } }
+      );
+      break;
+    default:
+      orgs = await Organization.paginate({}, { page, limit, sort: {} });
+      break;
+  }
+  res.status(200).json({ success: true, orgs });
 });
 
 /**

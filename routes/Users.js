@@ -109,6 +109,7 @@ const router = express.Router();
 router.get("/users", async (req, res) => {
   let { sort, limit, page } = req.query;
   limit = limit ? Number(limit) : 100;
+  page = !page ? 1 : page;
   let users = [];
   switch (sort) {
     case "asc":
