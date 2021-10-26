@@ -8,9 +8,27 @@ import helmet from "helmet";
 import usersRoute from "./routes/Users.js";
 import organizationsRoute from "./routes/Organizations.js";
 
+import swaggerUI from "swagger-ui-express";
+import swaggerJsDoc from "swagger-jsdoc";
+
 dotenv.config({
   path: "./config.env",
 });
+
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "JOSA Top Contributors API",
+      version: "1.0.0",
+      description: "Express based APIs for the JOSA Top Contributors.",
+    },
+    servers: [{ url: "http://localhost:3000" }],
+  },
+  apis: ["./routes/*.js"],
+};
+
+const swaggerSpecs = swaggerJsDoc(options);
 
 const app = express();
 app.use(express.json());
@@ -30,7 +48,7 @@ const ConnectToDB = async () => {
   });
   console.log("Connected to the database");
 };
-
+app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 app.use("/api/v1", usersRoute);
 app.use("/api/v1", organizationsRoute);
 
