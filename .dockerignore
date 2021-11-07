@@ -6,6 +6,7 @@
 
 # Docker
 Dockerfile
+docker-compose.yaml
 docker-compose.yml
 .dockerignore
 
@@ -21,3 +22,6 @@ SECURITY.md
 
 # Visual Studio Code (optional)
 .vscode
+
+# Drone
+.drone.yml
