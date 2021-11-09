@@ -83,7 +83,7 @@ const router = express.Router();
  *          name: limit
  *          schema:
  *            type: integer
- *          description: The number of items to return
+ *          description: The number of items to return, default is 5
  *        - in: query
  *          name: page
  *          schema:
@@ -93,7 +93,12 @@ const router = express.Router();
  *          name: sort
  *          schema:
  *            type: string
- *          description: Sort the users by their score ascending or descending, use asc or desc
+ *          description: Sort the users by their score ascending or descending, use asc for ascending, default value is descending
+ *        - in: query
+ *          name: sort_by
+ *          schema:
+ *            type: string
+ *          description: Sort the users by their score or commit count, use score or commit, default value is score
  *      responses:
  *        200:
  *          description: The list of users
@@ -107,21 +112,37 @@ const router = express.Router();
  *           description: Check your internet connection
  */
 router.get("/users", async (req, res) => {
-  let { sort, limit, page } = req.query;
-  limit = limit ? Number(limit) : 100;
+  let { sort, limit, page, sort_by } = req.query;
+  limit = limit ? Number(limit) : 5;
   page = !page ? 1 : page;
+  sort_by = !sort_by ? "score" : sort_by;
   let users = [];
-  switch (sort) {
-    case "asc":
-      users = await User.paginate({}, { page, limit, sort: { score: 1 } });
-      break;
-    case "desc":
-      users = await User.paginate({}, { page, limit, sort: { score: -1 } });
-      break;
-    default:
-      users = await User.paginate({}, { page, limit, sort: {} });
-      break;
+  if (sort_by == "score") {
+    switch (sort) {
+      case "asc":
+        users = await User.paginate({}, { page, limit, sort: { score: 1 } });
+        break;
+      default:
+        users = await User.paginate({}, { page, limit, sort: { score: -1 } });
+        break;
+    }
+  } else if (sort_by == "commit") {
+    switch (sort) {
+      case "asc":
+        users = await User.paginate(
+          {},
+          { page, limit, sort: { commitsTotalCount: 1 } }
+        );
+        break;
+      default:
+        users = await User.paginate(
+          {},
+          { page, limit, sort: { commitsTotalCount: -1 } }
+        );
+        break;
+    }
   }
+
   res.status(200).json({
     success: true,
     users,
