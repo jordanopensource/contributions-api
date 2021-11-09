@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import express from "express";
 import mongoose from "mongoose";
 import morgan from "morgan";
+import cors from "cors";
 import responseTime from "response-time";
 import helmet from "helmet";
 
@@ -34,6 +35,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet.hidePoweredBy());
+app.use(cors());
 const port = process.env.PORT;
 
 if (process.env.NODE_ENV !== "production") {
