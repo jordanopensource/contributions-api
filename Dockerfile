@@ -7,9 +7,11 @@ RUN cd /tmp && npm install && cp -r node_modules/ /app
 
 COPY . .
 
-# ENV DB_URL mongodb://localhost:27017/?readPreference=primary&appname=MongoDB%20Compass&directConnection=true&ssl=false
+ENV DB_URL mongodb://localhost:27017
+ENV HOST localhost
+ENV PORT 8080
+ENV NODE_ENV dev
 
-# ENV PORT 8080
 EXPOSE 8080
 
 CMD [ "node", "server.js" ]

@@ -24,7 +24,7 @@ const options = {
       version: "1.0.0",
       description: "Express based APIs for the JOSA Top Contributors.",
     },
-    servers: [{ url: `http://localhost:${process.env.PORT}` }],
+    servers: [{ url: `http://${process.env.HOST}:${process.env.PORT}` }],
   },
   apis: ["./routes/*.js"],
 };
