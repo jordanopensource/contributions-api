@@ -54,6 +54,13 @@ app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 app.use("/api/v1", usersRoute);
 app.use("/api/v1", organizationsRoute);
 
+app.get("*", (req, res) => {
+  res.status(404).json({
+    message:
+      "Resource not found, please go to /api/v1/docs to see all the available routes and resources.",
+  });
+});
+
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
   await ConnectToDB();
