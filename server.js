@@ -8,6 +8,7 @@ import helmet from "helmet";
 
 import usersRoute from "./routes/Users.js";
 import organizationsRoute from "./routes/Organizations.js";
+import contributionsRoute from "./routes/Contributions.js";
 
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -53,6 +54,7 @@ const ConnectToDB = async () => {
 app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 app.use("/api/v1", usersRoute);
 app.use("/api/v1", organizationsRoute);
+app.use("/api/v1", contributionsRoute);
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
