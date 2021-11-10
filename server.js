@@ -3,11 +3,13 @@ import express from "express";
 import mongoose from "mongoose";
 import morgan from "morgan";
 import cors from "cors";
+import compression from "compression";
 import responseTime from "response-time";
 import helmet from "helmet";
 
 import usersRoute from "./routes/Users.js";
 import organizationsRoute from "./routes/Organizations.js";
+import contributionsRoute from "./routes/Contributions.js";
 
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -35,6 +37,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(helmet.hidePoweredBy());
+app.use(compression());
 app.use(cors());
 const port = process.env.PORT;
 
@@ -53,6 +56,7 @@ const ConnectToDB = async () => {
 app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
 app.use("/api/v1", usersRoute);
 app.use("/api/v1", organizationsRoute);
+app.use("/api/v1", contributionsRoute);
 
 app.get("*", (req, res) => {
   res.status(404).json({
