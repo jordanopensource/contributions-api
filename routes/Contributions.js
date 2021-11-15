@@ -39,7 +39,7 @@ const countLastMonthCommits = async () => {
  */
 /**
  *  @swagger
- *  /api/v1/contributions:
+ *  /v1/contributions:
  *    get:
  *      summary: Returns information about the contributions
  *      tags: [Contributions]
