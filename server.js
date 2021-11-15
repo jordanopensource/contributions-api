@@ -43,7 +43,7 @@ if (process.env.NODE_ENV !== "production") {
 }
 if (process.env.LOGGING === "dev") {
   app.use(morgan("combined"));
-} else {
+} else if (process.env.LOGGING === "tiny") {
   app.use(morgan("tiny"));
 }
 
