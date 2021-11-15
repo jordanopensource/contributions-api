@@ -58,7 +58,7 @@ const router = express.Router();
  */
 /**
  *  @swagger
- *  /api/v1/orgs:
+ *  /v1/orgs:
  *    get:
  *      summary: Returns the list of all the Organizations
  *      tags: [Organizations]
@@ -117,7 +117,7 @@ router.get("/orgs", async (req, res) => {
 
 /**
  *  @swagger
- *  /api/v1/orgs/{username}:
+ *  /v1/orgs/{username}:
  *    get:
  *      summary: Returns a specific Organization by its username
  *      tags: [Organizations]
@@ -142,7 +142,7 @@ router.get("/orgs/:username", async (req, res) => {
 
 /**
  *  @swagger
- *  /api/v1/orgs/{username}/repos:
+ *  /v1/orgs/{username}/repos:
  *    get:
  *      summary: Returns a list of all public repositories for a given Organization
  *      tags: [Organizations]
