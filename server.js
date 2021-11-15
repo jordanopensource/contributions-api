@@ -4,7 +4,6 @@ import mongoose from "mongoose";
 import morgan from "morgan";
 import cors from "cors";
 import compression from "compression";
-import responseTime from "response-time";
 import helmet from "helmet";
 
 import usersRoute from "./routes/Users.js";
@@ -27,9 +26,6 @@ app.use(cors());
 const port = process.env.PORT;
 
 if (process.env.NODE_ENV !== "production") {
-  app.use(morgan("dev"));
-  app.use(responseTime());
-
   const options = {
     definition: {
       openapi: "3.0.0",
@@ -43,7 +39,12 @@ if (process.env.NODE_ENV !== "production") {
     apis: ["./routes/*.js"],
   };
   const swaggerSpecs = swaggerJsDoc(options);
-  app.use("/api/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
+  app.use("/v1/docs", swaggerUI.serve, swaggerUI.setup(swaggerSpecs));
+}
+if (process.env.LOGGING === "dev") {
+  app.use(morgan("combined"));
+} else {
+  app.use(morgan("tiny"));
 }
 
 const ConnectToDB = async () => {
