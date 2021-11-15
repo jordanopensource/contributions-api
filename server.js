@@ -61,7 +61,7 @@ app.use("/v1", contributionsRoute);
 app.get("*", (req, res) => {
   res.status(404).json({
     message:
-      "Resource not found, please go to /api/v1/docs to see all the available routes and resources.",
+      "Resource not found, please go to /v1/docs to see all the available routes and resources.",
   });
 });
 
