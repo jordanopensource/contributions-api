@@ -56,7 +56,10 @@ const ConnectToDB = async () => {
     useUnifiedTopology: true,
   });
   dbConnected = true;
-  console.log("Connected to the database");
+  console.info("Connected to the database");
+  console.info(
+    `Database Host: ${mongoose.connection.host}\nDatabase Port: ${mongoose.connection.port}\nDatabase Name: ${mongoose.connection.name}`
+  );
 };
 app.use("/v1", usersRoute);
 app.use("/v1", organizationsRoute);
