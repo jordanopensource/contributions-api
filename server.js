@@ -9,6 +9,7 @@ import helmet from "helmet";
 import usersRoute from "./routes/Users.js";
 import organizationsRoute from "./routes/Organizations.js";
 import contributionsRoute from "./routes/Contributions.js";
+import healthCheckRoute from "./routes/Health.js";
 
 import swaggerUI from "swagger-ui-express";
 import swaggerJsDoc from "swagger-jsdoc";
@@ -24,6 +25,8 @@ app.use(helmet.hidePoweredBy());
 app.use(compression());
 app.use(cors());
 const port = process.env.PORT;
+
+let dbConnected = false;
 
 if (process.env.NODE_ENV !== "production") {
   const options = {
@@ -52,11 +55,13 @@ const ConnectToDB = async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
+  dbConnected = true;
   console.log("Connected to the database");
 };
 app.use("/v1", usersRoute);
 app.use("/v1", organizationsRoute);
 app.use("/v1", contributionsRoute);
+app.use("/v1", healthCheckRoute);
 
 app.get("*", (req, res) => {
   let message =
@@ -71,5 +76,5 @@ app.get("*", (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
-  await ConnectToDB();
+  await ConnectToDB().catch(err => console.log(`Database not connected`));
 });
