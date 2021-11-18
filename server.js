@@ -59,9 +59,13 @@ app.use("/v1", organizationsRoute);
 app.use("/v1", contributionsRoute);
 
 app.get("*", (req, res) => {
+  let message =
+    "Resource not found, please go to /v1/docs to see all the available routes and resources.";
+  if (process.env.NODE_ENV === "production") {
+    message = "Resource not found, check your connection and try again.";
+  }
   res.status(404).json({
-    message:
-      "Resource not found, please go to /v1/docs to see all the available routes and resources.",
+    message: message,
   });
 });
 
