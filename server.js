@@ -26,8 +26,6 @@ app.use(compression());
 app.use(cors());
 const port = process.env.PORT;
 
-let dbConnected = false;
-
 if (process.env.NODE_ENV !== "production") {
   const options = {
     definition: {

@@ -122,13 +122,23 @@ router.get("/users", async (req, res) => {
       case "asc":
         users = await User.paginate(
           {},
-          { page, limit, sort: { score: 1, username: 1 } }
+          {
+            select: "username avatar_url name score commitsTotalCount",
+            page,
+            limit,
+            sort: { score: 1, username: 1 },
+          }
         );
         break;
       default:
         users = await User.paginate(
           {},
-          { page, limit, sort: { score: -1, username: 1 } }
+          {
+            select: "username avatar_url name score commitsTotalCount",
+            page,
+            limit,
+            sort: { score: -1, username: 1 },
+          }
         );
         break;
     }
@@ -137,13 +147,23 @@ router.get("/users", async (req, res) => {
       case "asc":
         users = await User.paginate(
           {},
-          { page, limit, sort: { commitsTotalCount: 1, username: 1 } }
+          {
+            select: "username avatar_url name score commitsTotalCount",
+            page,
+            limit,
+            sort: { commitsTotalCount: 1, username: 1 },
+          }
         );
         break;
       default:
         users = await User.paginate(
           {},
-          { page, limit, sort: { commitsTotalCount: -1, username: 1 } }
+          {
+            select: "username avatar_url name score commitsTotalCount",
+            page,
+            limit,
+            sort: { commitsTotalCount: -1, username: 1 },
+          }
         );
         break;
     }
