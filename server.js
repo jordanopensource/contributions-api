@@ -53,7 +53,6 @@ const ConnectToDB = async () => {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });
-  dbConnected = true;
   console.info("Connected to the database");
   console.info(
     `Database Host: ${mongoose.connection.host}\nDatabase Port: ${mongoose.connection.port}\nDatabase Name: ${mongoose.connection.name}`
@@ -77,5 +76,7 @@ app.get("*", (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
-  await ConnectToDB().catch(err => console.log(`Database not connected`));
+  await ConnectToDB().catch(err =>
+    console.log(`Database not connected: ${err}`)
+  );
 });
