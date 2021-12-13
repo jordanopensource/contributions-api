@@ -88,3 +88,16 @@ process.on("SIGTERM", async () => {
     console.log("server closed");
   });
 });
+
+// Listen for the signal that there is an uncaught exception
+process.on("uncaughtException", async err => {
+  console.error(
+    `There is an error server can't continue running, "THE ERROR": ${err}`
+  );
+  app.close(() => {
+    mongoose.disconnect(() => {
+      console.log("Database disconnected");
+    });
+    console.log("server is closed");
+  });
+});
