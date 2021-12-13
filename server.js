@@ -76,7 +76,28 @@ app.get("*", (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
-  await ConnectToDB().catch(err =>
-    console.log(`Database not connected: ${err}`)
+  await ConnectToDB();
+});
+
+// Listen for the signal from the OS that the process is about to exit
+process.on("SIGTERM", async () => {
+  app.close(() => {
+    mongoose.disconnect(() => {
+      console.log("Database disconnected");
+    });
+    console.log("server closed");
+  });
+});
+
+// Listen for the signal that there is an uncaught exception
+process.on("uncaughtException", async err => {
+  console.error(
+    `There is an error server can't continue running, "THE ERROR": ${err}`
   );
+  app.close(() => {
+    mongoose.disconnect(() => {
+      console.log("Database disconnected");
+    });
+    console.log("server is closed");
+  });
 });
