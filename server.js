@@ -76,7 +76,15 @@ app.get("*", (req, res) => {
 
 app.listen(port, async () => {
   console.log(`Express server listening on port: ${port}`);
-  await ConnectToDB().catch(err =>
-    console.log(`Database not connected: ${err}`)
-  );
+  await ConnectToDB();
+});
+
+// Listen for the signal from the OS that the process is about to exit
+process.on("SIGTERM", async () => {
+  app.close(() => {
+    mongoose.disconnect(() => {
+      console.log("Database disconnected");
+    });
+    console.log("server closed");
+  });
 });
