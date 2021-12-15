@@ -5,6 +5,27 @@ import User from "../models/user.js";
 
 const router = express.Router();
 
+const GetLast30DaysCommits = _commitsList => {
+  const currentDate = new Date();
+  const currentDateTime = currentDate.getTime();
+  const last30DaysDate = new Date(
+    currentDate.setDate(currentDate.getDate() - 30)
+  );
+  const last30DaysDateTime = last30DaysDate.getTime();
+  const lastMonthsCommits = _commitsList.filter(commit => {
+    const elementDateTime = new Date(commit.occurredAt).getTime();
+    if (
+      elementDateTime <= currentDateTime &&
+      elementDateTime > last30DaysDateTime
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  return lastMonthsCommits;
+};
+
 const countLastMonthCommits = async () => {
   let users = await User.find({}, "commit_contributions");
   let commitsList = [];
@@ -15,14 +36,7 @@ const countLastMonthCommits = async () => {
       }
     }
   }
-  // Get last date
-  let last = commitsList.map(obj => obj.occurredAt).sort()[
-    commitsList.length - 1
-  ];
-  // Get objects in last month
-  let lastMonthsCommits = commitsList.filter(
-    obj => obj.occurredAt.substr(0, 7) == last.substr(0, 7)
-  );
+  const lastMonthsCommits = GetLast30DaysCommits(commitsList);
 
   let count = 0;
   for (const contribution of lastMonthsCommits) {
