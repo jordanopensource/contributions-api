@@ -84,10 +84,9 @@ process.on("uncaughtException", async err => {
   console.error(
     `There is an error server can't continue running, "THE ERROR": ${err}`
   );
-  app.close(() => {
-    mongoose.disconnect(() => {
-      console.log("Database disconnected");
-    });
-    console.log("server is closed");
+  mongoose.disconnect(() => {
+    console.log("Database disconnected");
   });
+  console.log("server is closed");
+  process.exit(1);
 });
