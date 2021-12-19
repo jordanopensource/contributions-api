@@ -124,7 +124,7 @@ router.get("/users", async (req, res) => {
           {},
           {
             select:
-              "username avatar_url name score commitsTotalCount score_rank",
+              "username avatar_url name score commitsTotalCount score_rank commit_contributions",
             page,
             limit,
             sort: { score: 1, username: 1 },
@@ -136,7 +136,7 @@ router.get("/users", async (req, res) => {
           {},
           {
             select:
-              "username avatar_url name score commitsTotalCount score_rank",
+              "username avatar_url name score commitsTotalCount score_rank commit_contributions",
             page,
             limit,
             sort: { score: -1, username: 1 },
@@ -151,7 +151,7 @@ router.get("/users", async (req, res) => {
           {},
           {
             select:
-              "username avatar_url name score commitsTotalCount contributions_rank",
+              "username avatar_url name score commitsTotalCount contributions_rank commit_contributions",
             page,
             limit,
             sort: { commitsTotalCount: 1, username: 1 },
@@ -163,7 +163,7 @@ router.get("/users", async (req, res) => {
           {},
           {
             select:
-              "username avatar_url name score commitsTotalCount contributions_rank",
+              "username avatar_url name score commitsTotalCount contributions_rank commit_contributions",
             page,
             limit,
             sort: { commitsTotalCount: -1, username: 1 },
