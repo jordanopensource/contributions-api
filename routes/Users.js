@@ -266,6 +266,7 @@ router.get("/users", async (req, res) => {
       res.status(200).json({
         success: true,
         users,
+        totalUsers: rankedUsers.length,
       });
     } else if (sort_by === "commit") {
       const rankedUsers = usersResponse(
@@ -278,6 +279,7 @@ router.get("/users", async (req, res) => {
       res.status(200).json({
         success: true,
         users,
+        totalUsers: rankedUsers.length,
       });
     }
   } else if (period === "this_year") {
@@ -292,6 +294,7 @@ router.get("/users", async (req, res) => {
       res.status(200).json({
         success: true,
         users,
+        totalUsers: rankedUsers.length,
       });
     } else if (sort_by === "commit") {
       const rankedUsers = usersResponse(
@@ -304,6 +307,7 @@ router.get("/users", async (req, res) => {
       res.status(200).json({
         success: true,
         users,
+        totalUsers: rankedUsers.length,
       });
     }
   } else if (period === "last_month") {
@@ -318,6 +322,7 @@ router.get("/users", async (req, res) => {
       res.status(200).json({
         success: true,
         users,
+        totalUsers: rankedUsers.length,
       });
     } else if (sort_by === "commit") {
       const rankedUsers = usersResponse(
@@ -330,6 +335,7 @@ router.get("/users", async (req, res) => {
       res.status(200).json({
         success: true,
         users,
+        totalUsers: rankedUsers.length,
       });
     }
   }
