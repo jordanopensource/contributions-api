@@ -8,6 +8,29 @@ const router = express.Router();
 let firstVisit = true;
 let usersArray = [];
 
+const RankUsersByScore = _usersArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let userRanks = [];
+
+  let usersSorted = _usersArray.slice().sort((a, b) => {
+    return b.score - a.score;
+  });
+  usersSorted.forEach(user => {
+    if (user.score !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    userRanks.push({
+      ...user,
+      currentRank,
+    });
+    rankValue = user.score;
+  });
+
+  return userRanks;
+};
+
 /**
  * @swagger
  * components:
