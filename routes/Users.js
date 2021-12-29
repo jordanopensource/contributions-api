@@ -101,6 +101,36 @@ const GetThePerviousMonthCommits = _commitsList => {
   return lastMonthCommits;
 };
 
+const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
+  let unRankedUsers = [];
+
+  for (let user of _usersArray) {
+    let userScore = 0;
+    let userCommitsCount = 0;
+    for (let repo of user.commit_contributions) {
+      let repoCommitCount = 0;
+      let commitsInThisPeriod = _periodFunc(repo.commits);
+      for (const commit of commitsInThisPeriod) {
+        userCommitsCount += commit.commitCount;
+        repoCommitCount += commit.commitCount;
+      }
+      userScore += repoCommitCount * repo.starsCount;
+    }
+
+    let newUserObject = {
+      username: user.username,
+      name: user.name,
+      avatar_url: user.avatar_url,
+      commitsTotalCount: userCommitsCount,
+      score: userScore,
+    };
+    unRankedUsers.push(newUserObject);
+  }
+  const rankedUsers = _rankFunc(unRankedUsers);
+
+  return rankedUsers;
+};
+
 /**
  * @swagger
  * components:
