@@ -25,7 +25,7 @@ const GetLast30DaysCommits = _commitsList => {
   return last30DaysCommits;
 };
 
-const countLastMonthCommits = async () => {
+const countLast30DaysCommits = async () => {
   let users = await User.find({}, "commit_contributions");
   let commitsList = [];
   for (const user of users) {
