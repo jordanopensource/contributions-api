@@ -31,6 +31,29 @@ const RankUsersByScore = _usersArray => {
   return userRanks;
 };
 
+const RankUsersByContributions = _usersArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let userRanks = [];
+
+  let usersSorted = _usersArray.sort((a, b) => {
+    return b.commitsTotalCount - a.commitsTotalCount;
+  });
+  usersSorted.forEach(user => {
+    if (user.commitsTotalCount !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    userRanks.push({
+      ...user,
+      currentRank,
+    });
+    rankValue = user.commitsTotalCount;
+  });
+
+  return userRanks;
+};
+
 /**
  * @swagger
  * components:
