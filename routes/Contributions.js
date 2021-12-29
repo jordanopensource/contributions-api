@@ -63,10 +63,10 @@ const countLast30DaysCommits = async () => {
  *          description: Check your internet connection and try again
  */
 router.get("/contributions", async (req, res) => {
-  let commits_last_month = await countLastMonthCommits();
+  let commits_last_30_days = await countLastMonthCommits();
   res.status(200).json({
     success: true,
-    commits_last_month,
+    commits_last_30_days,
   });
 });
 
