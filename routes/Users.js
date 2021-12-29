@@ -67,6 +67,26 @@ const GetThisYearCommits = _commitsList => {
   return currentYearCommits;
 };
 
+const GetLast30DaysCommits = _commitsList => {
+  const currentDate = new Date();
+  const currentDateString = currentDate.toISOString();
+
+  const last30Days = currentDate.setDate(currentDate.getDate() - 30);
+  const last30DaysString = new Date(last30Days).toISOString();
+
+  const last30DaysCommits = _commitsList.filter(commit => {
+    if (
+      new Date(commit.occurredAt) >= new Date(last30DaysString) &&
+      new Date(commit.occurredAt) <= new Date(currentDateString)
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  return last30DaysCommits;
+};
+
 /**
  * @swagger
  * components:
