@@ -87,6 +87,20 @@ const GetLast30DaysCommits = _commitsList => {
   return last30DaysCommits;
 };
 
+const GetThePerviousMonthCommits = _commitsList => {
+  const currentDate = new Date();
+  const lastMonth = new Date(currentDate.setMonth(currentDate.getMonth() - 1));
+
+  const lastMonthCommits = _commitsList.filter(commit => {
+    if (new Date(commit.occurredAt).getMonth() === lastMonth.getMonth()) {
+      return true;
+    }
+    return false;
+  });
+
+  return lastMonthCommits;
+};
+
 /**
  * @swagger
  * components:
