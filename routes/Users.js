@@ -54,6 +54,19 @@ const RankUsersByContributions = _usersArray => {
   return userRanks;
 };
 
+const GetThisYearCommits = _commitsList => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentYearCommits = _commitsList.filter(commit => {
+    if (new Date(commit.occurredAt).getFullYear() === currentYear) {
+      return true;
+    }
+    return false;
+  });
+
+  return currentYearCommits;
+};
+
 /**
  * @swagger
  * components:
