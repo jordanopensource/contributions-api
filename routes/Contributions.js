@@ -7,26 +7,25 @@ const router = express.Router();
 
 const GetLast30DaysCommits = _commitsList => {
   const currentDate = new Date();
-  const currentDateTime = currentDate.getTime();
-  const last30DaysDate = new Date(
-    currentDate.setDate(currentDate.getDate() - 30)
-  );
-  const last30DaysDateTime = last30DaysDate.getTime();
-  const lastMonthsCommits = _commitsList.filter(commit => {
-    const elementDateTime = new Date(commit.occurredAt).getTime();
+  const currentDateString = currentDate.toISOString();
+
+  const last30Days = currentDate.setDate(currentDate.getDate() - 30);
+  const last30DaysString = new Date(last30Days).toISOString();
+
+  const last30DaysCommits = _commitsList.filter(commit => {
     if (
-      elementDateTime <= currentDateTime &&
-      elementDateTime > last30DaysDateTime
+      new Date(commit.occurredAt) >= new Date(last30DaysString) &&
+      new Date(commit.occurredAt) <= new Date(currentDateString)
     ) {
       return true;
     }
     return false;
   });
 
-  return lastMonthsCommits;
+  return last30DaysCommits;
 };
 
-const countLastMonthCommits = async () => {
+const countLast30DaysCommits = async () => {
   let users = await User.find({}, "commit_contributions");
   let commitsList = [];
   for (const user of users) {
@@ -64,10 +63,10 @@ const countLastMonthCommits = async () => {
  *          description: Check your internet connection and try again
  */
 router.get("/contributions", async (req, res) => {
-  let commits_last_month = await countLastMonthCommits();
+  let commits_last_30_days = await countLast30DaysCommits();
   res.status(200).json({
     success: true,
-    commits_last_month,
+    commits_last_30_days,
   });
 });
 

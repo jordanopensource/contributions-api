@@ -5,6 +5,132 @@ import User from "../models/user.js";
 
 const router = express.Router();
 
+let firstVisit = true;
+let usersArray = [];
+
+const RankUsersByScore = _usersArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let userRanks = [];
+
+  let usersSorted = _usersArray.slice().sort((a, b) => {
+    return b.score - a.score;
+  });
+  usersSorted.forEach(user => {
+    if (user.score !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    userRanks.push({
+      ...user,
+      currentRank,
+    });
+    rankValue = user.score;
+  });
+
+  return userRanks;
+};
+
+const RankUsersByContributions = _usersArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let userRanks = [];
+
+  let usersSorted = _usersArray.sort((a, b) => {
+    return b.commitsTotalCount - a.commitsTotalCount;
+  });
+  usersSorted.forEach(user => {
+    if (user.commitsTotalCount !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    userRanks.push({
+      ...user,
+      currentRank,
+    });
+    rankValue = user.commitsTotalCount;
+  });
+
+  return userRanks;
+};
+
+const GetThisYearCommits = _commitsList => {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  const currentYearCommits = _commitsList.filter(commit => {
+    if (new Date(commit.occurredAt).getFullYear() === currentYear) {
+      return true;
+    }
+    return false;
+  });
+
+  return currentYearCommits;
+};
+
+const GetLast30DaysCommits = _commitsList => {
+  const currentDate = new Date();
+  const currentDateString = currentDate.toISOString();
+
+  const last30Days = currentDate.setDate(currentDate.getDate() - 30);
+  const last30DaysString = new Date(last30Days).toISOString();
+
+  const last30DaysCommits = _commitsList.filter(commit => {
+    if (
+      new Date(commit.occurredAt) >= new Date(last30DaysString) &&
+      new Date(commit.occurredAt) <= new Date(currentDateString)
+    ) {
+      return true;
+    }
+    return false;
+  });
+
+  return last30DaysCommits;
+};
+
+const GetThePerviousMonthCommits = _commitsList => {
+  const currentDate = new Date();
+  const lastMonth = new Date(currentDate.setMonth(currentDate.getMonth() - 1));
+
+  const lastMonthCommits = _commitsList.filter(commit => {
+    if (new Date(commit.occurredAt).getMonth() === lastMonth.getMonth()) {
+      return true;
+    }
+    return false;
+  });
+
+  return lastMonthCommits;
+};
+
+const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
+  let unRankedUsers = [];
+
+  for (let user of _usersArray) {
+    let userScore = 0;
+    let userCommitsCount = 0;
+    for (let repo of user.commit_contributions) {
+      let repoCommitCount = 0;
+      let commitsInThisPeriod = _periodFunc(repo.commits);
+      for (const commit of commitsInThisPeriod) {
+        userCommitsCount += commit.commitCount;
+        repoCommitCount += commit.commitCount;
+      }
+      userScore += repoCommitCount * repo.starsCount;
+    }
+
+    let newUserObject = {
+      username: user.username,
+      name: user.name,
+      avatar_url: user.avatar_url,
+      commitsTotalCount: userCommitsCount,
+      score: userScore,
+    };
+    unRankedUsers.push(newUserObject);
+  }
+  const rankedUsers = _rankFunc(unRankedUsers);
+
+  return rankedUsers;
+};
+
 /**
  * @swagger
  * components:
@@ -112,71 +238,113 @@ const router = express.Router();
  *           description: Check your internet connection
  */
 router.get("/users", async (req, res) => {
-  let { sort, limit, page, sort_by } = req.query;
+  let { limit, page, sort_by, period } = req.query;
   limit = limit ? Number(limit) : 5;
   page = !page ? 1 : page;
   sort_by = !sort_by ? "score" : sort_by;
-  let users = [];
-  if (sort_by == "score") {
-    switch (sort) {
-      case "asc":
-        users = await User.paginate(
-          {},
-          {
-            select:
-              "username avatar_url name score commitsTotalCount score_rank commit_contributions",
-            page,
-            limit,
-            sort: { score: 1, username: 1 },
-          }
-        );
-        break;
-      default:
-        users = await User.paginate(
-          {},
-          {
-            select:
-              "username avatar_url name score commitsTotalCount score_rank commit_contributions",
-            page,
-            limit,
-            sort: { score: -1, username: 1 },
-          }
-        );
-        break;
-    }
-  } else if (sort_by == "commit") {
-    switch (sort) {
-      case "asc":
-        users = await User.paginate(
-          {},
-          {
-            select:
-              "username avatar_url name score commitsTotalCount contributions_rank commit_contributions",
-            page,
-            limit,
-            sort: { commitsTotalCount: 1, username: 1 },
-          }
-        );
-        break;
-      default:
-        users = await User.paginate(
-          {},
-          {
-            select:
-              "username avatar_url name score commitsTotalCount contributions_rank commit_contributions",
-            page,
-            limit,
-            sort: { commitsTotalCount: -1, username: 1 },
-          }
-        );
-        break;
-    }
+  period = !period ? "last_30_days" : period;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  if (firstVisit === true) {
+    usersArray = await User.find(
+      {},
+      "username name commit_contributions avatar_url"
+    );
+    firstVisit = false;
   }
 
-  res.status(200).json({
-    success: true,
-    users,
-  });
+  if (period === "last_30_days") {
+    if (sort_by === "score") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetLast30DaysCommits,
+        RankUsersByScore
+      );
+      const users = rankedUsers.slice(startIndex, endIndex);
+
+      res.status(200).json({
+        success: true,
+        users,
+        totalUsers: rankedUsers.length,
+        totalPages: Math.ceil(rankedUsers.length / limit)
+      });
+    } else if (sort_by === "commit") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetLast30DaysCommits,
+        RankUsersByContributions
+      );
+      const users = rankedUsers.slice(startIndex, endIndex);
+
+      res.status(200).json({
+        success: true,
+        users,
+        totalUsers: rankedUsers.length,
+        totalPages: Math.ceil(rankedUsers.length / limit)
+      });
+    }
+  } else if (period === "this_year") {
+    if (sort_by === "score") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetThisYearCommits,
+        RankUsersByScore
+      );
+      const users = rankedUsers.slice(startIndex, endIndex);
+
+      res.status(200).json({
+        success: true,
+        users,
+        totalUsers: rankedUsers.length,
+        totalPages: Math.ceil(rankedUsers.length / limit)
+      });
+    } else if (sort_by === "commit") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetThisYearCommits,
+        RankUsersByContributions
+      );
+      const users = rankedUsers.slice(startIndex, endIndex);
+
+      res.status(200).json({
+        success: true,
+        users,
+        totalUsers: rankedUsers.length,
+        totalPages: Math.ceil(rankedUsers.length / limit)
+      });
+    }
+  } else if (period === "last_month") {
+    if (sort_by === "score") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetThePerviousMonthCommits,
+        RankUsersByScore
+      );
+      const users = rankedUsers.slice(startIndex, endIndex);
+
+      res.status(200).json({
+        success: true,
+        users,
+        totalUsers: rankedUsers.length,
+        totalPages: Math.ceil(rankedUsers.length / limit)
+      });
+    } else if (sort_by === "commit") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetThePerviousMonthCommits,
+        RankUsersByContributions
+      );
+      const users = rankedUsers.slice(startIndex, endIndex);
+
+      res.status(200).json({
+        success: true,
+        users,
+        totalUsers: rankedUsers.length,
+        totalPages: Math.ceil(rankedUsers.length / limit)
+      });
+    }
+  }
 });
 
 /**
