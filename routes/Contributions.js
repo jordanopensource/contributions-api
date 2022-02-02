@@ -266,7 +266,42 @@ router.get("/contributions", async (req, res) => {
   });
 });
 
-router.get("/stats", async (req, res) => {
+/**
+ * @swagger
+ * tags:
+ *   name: Stats
+ *   description: The stats routes
+ */
+/**
+ *  @swagger
+ *  /v1/stats/contributors:
+ *    get:
+ *      summary: Returns the stats for the contributors
+ *      tags: [Stats]
+ *      parameters:
+ *        - in: query
+ *          name: type
+ *          schema:
+ *            type: string
+ *          description: The type of the data to return users or commits, default is users
+ *        - in: query
+ *          name: period
+ *          schema:
+ *            type: string
+ *          required: true
+ *          description: The two dates to return the data between eg.. 2019-01-01_2019-01-31 (the two dates separated by underscore)
+ *        - in: query
+ *          name: aggregation
+ *          schema:
+ *            type: string
+ *          description: Specifies to group and returns the data by month or day, default is month
+ *      responses:
+ *        200:
+ *          description: The request was successful
+ *        404:
+ *          description: Check your internet connection and try again
+ */
+router.get("/stats/contributors", async (req, res) => {
   let { type, period, aggregation } = req.query;
   type = !type ? "users" : type;
   aggregation = !aggregation ? "month" : aggregation;
