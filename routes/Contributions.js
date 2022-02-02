@@ -5,7 +5,11 @@ import User from "../models/user.js";
 
 const router = express.Router();
 
-const GetLast30DaysCommits = _commitsList => {
+const getDaysInAMonth = (month, year) => {
+  return new Date(year, month + 1, 0).getDate();
+};
+
+const getLast30DaysCommits = _commitsList => {
   const currentDate = new Date();
   const currentDateString = currentDate.toISOString();
 
@@ -35,13 +39,205 @@ const countLast30DaysCommits = async () => {
       }
     }
   }
-  const lastMonthsCommits = GetLast30DaysCommits(commitsList);
+  const lastMonthsCommits = getLast30DaysCommits(commitsList);
 
   let count = 0;
   for (const contribution of lastMonthsCommits) {
     count += contribution.commitCount;
   }
   return count;
+};
+
+const countUsersCreatedBeforeDate = async date => {
+  return await User.find({
+    user_createdAt: {
+      $lt: date,
+    },
+  }).countDocuments();
+};
+
+const getUsersCreatedBetweenTwoDates = async (startDate, endDate) => {
+  return await User.find(
+    {
+      user_createdAt: {
+        $gte: startDate + "T00:00:00.000Z",
+        $lte: endDate + "T23:59:59.999Z",
+      },
+    },
+    "user_createdAt"
+  );
+};
+
+const countUsersCreatedBetweenTwoDates = async (startDate, endDate) => {
+  return await User.find({
+    user_createdAt: {
+      $gte: startDate + "T00:00:00.000Z",
+      $lte: endDate + "T23:59:59.999Z",
+    },
+  }).countDocuments();
+};
+
+const accumulatedTotalUsersByMonth = async periodArray => {
+  let users = await getUsersCreatedBetweenTwoDates(
+    periodArray[0],
+    periodArray[1]
+  );
+
+  let usersCreatedByMonth = {};
+  for (const user of users) {
+    let date = new Date(user.user_createdAt);
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    if (usersCreatedByMonth[year] === undefined) {
+      usersCreatedByMonth[year] = {};
+    }
+    if (usersCreatedByMonth[year][month] === undefined) {
+      usersCreatedByMonth[year][month] = 0;
+    }
+    usersCreatedByMonth[year][month]++;
+  }
+
+  let usersCreatedAccumulationByMonth = {};
+  for (const year in usersCreatedByMonth) {
+    usersCreatedAccumulationByMonth[year] = [];
+    let accumulation = await countUsersCreatedBeforeDate(year);
+    for (const month in usersCreatedByMonth[year]) {
+      accumulation += usersCreatedByMonth[year][month];
+      usersCreatedAccumulationByMonth[year][month] = accumulation;
+    }
+  }
+
+  return usersCreatedAccumulationByMonth;
+};
+
+const accumulatedTotalUsersByDay = async periodArray => {
+  let users = await getUsersCreatedBetweenTwoDates(
+    periodArray[0],
+    periodArray[1]
+  );
+
+  let usersCreatedByDay = {};
+  for (const user of users) {
+    let date = new Date(user.user_createdAt);
+    let day = date.getDate();
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    if (usersCreatedByDay[year] === undefined) {
+      usersCreatedByDay[year] = {};
+    }
+    if (usersCreatedByDay[year][month] === undefined) {
+      usersCreatedByDay[year][month] = new Array(
+        Number(getDaysInAMonth(month, year))
+      ).fill(0);
+    }
+    if (usersCreatedByDay[year][month][day] === undefined) {
+      usersCreatedByDay[year][month][day] = 0;
+    }
+    usersCreatedByDay[year][month][day]++;
+  }
+
+  let usersCreatedAccumulationByDay = {};
+  for (const year in usersCreatedByDay) {
+    usersCreatedAccumulationByDay[year] = {};
+    for (const month in usersCreatedByDay[year]) {
+      usersCreatedAccumulationByDay[year][month] = [];
+      let accumulation = await countUsersCreatedBeforeDate(
+        new Date(year, month, 1).toISOString()
+      );
+      for (const day in usersCreatedByDay[year][month]) {
+        accumulation += usersCreatedByDay[year][month][day];
+        usersCreatedAccumulationByDay[year][month][day] = accumulation;
+      }
+    }
+  }
+  return usersCreatedAccumulationByDay;
+};
+
+const accumulatedTotalCommitsByMonth = async (from, to) => {
+  let users = await User.find({}, "commit_contributions");
+  let commitsList = [];
+  for (const user of users) {
+    for (const repo of user.commit_contributions) {
+      for (const commit of repo.commits) {
+        if (commit.occurredAt >= from && commit.occurredAt <= to) {
+          commitsList.push(commit);
+        }
+      }
+    }
+  }
+
+  let commitsByMonth = {};
+  for (const commit of commitsList) {
+    let date = new Date(commit.occurredAt);
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    if (commitsByMonth[year] === undefined) {
+      commitsByMonth[year] = {};
+    }
+    if (commitsByMonth[year][month] === undefined) {
+      commitsByMonth[year][month] = 0;
+    }
+    commitsByMonth[year][month]++;
+  }
+
+  let commitsAccumulationByMonth = {};
+  let accumulation = 0;
+  for (const year in commitsByMonth) {
+    commitsAccumulationByMonth[year] = [];
+    for (const month in commitsByMonth[year]) {
+      accumulation += commitsByMonth[year][month];
+      commitsAccumulationByMonth[year][month] = accumulation;
+    }
+  }
+  return commitsAccumulationByMonth;
+};
+
+const accumulatedTotalCommitsByDay = async (from, to) => {
+  let users = await User.find({}, "commit_contributions");
+  let commitsList = [];
+  for (const user of users) {
+    for (const repo of user.commit_contributions) {
+      for (const commit of repo.commits) {
+        if (commit.occurredAt >= from && commit.occurredAt <= to) {
+          commitsList.push(commit);
+        }
+      }
+    }
+  }
+
+  let commitsByDay = {};
+  for (const commit of commitsList) {
+    let date = new Date(commit.occurredAt);
+    let day = date.getDate();
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    if (commitsByDay[year] === undefined) {
+      commitsByDay[year] = {};
+    }
+    if (commitsByDay[year][month] === undefined) {
+      commitsByDay[year][month] = new Array(
+        Number(getDaysInAMonth(month, year))
+      ).fill(0);
+    }
+    if (commitsByDay[year][month][day] === undefined) {
+      commitsByDay[year][month][day] = 0;
+    }
+    commitsByDay[year][month][day]++;
+  }
+
+  let commitsAccumulationByDay = {};
+  let accumulation = 0;
+  for (const year in commitsByDay) {
+    commitsAccumulationByDay[year] = {};
+    for (const month in commitsByDay[year]) {
+      commitsAccumulationByDay[year][month] = [];
+      for (const day in commitsByDay[year][month]) {
+        accumulation += commitsByDay[year][month][day];
+        commitsAccumulationByDay[year][month][day] = accumulation;
+      }
+    }
+  }
+  return commitsAccumulationByDay;
 };
 
 /**
@@ -68,6 +264,89 @@ router.get("/contributions", async (req, res) => {
     success: true,
     commits_last_30_days,
   });
+});
+
+router.get("/stats", async (req, res) => {
+  let { type, period, aggregation } = req.query;
+  type = !type ? "users" : type;
+  aggregation = !aggregation ? "month" : aggregation;
+
+  if (period) {
+    const periodArray = period.split("_");
+    switch (type) {
+      case "users":
+        switch (aggregation) {
+          case "month":
+            const usersByMonth = await accumulatedTotalUsersByMonth(
+              periodArray
+            );
+            res.status(200).json({
+              success: true,
+              usersStats: usersByMonth,
+            });
+            break;
+          case "day":
+            const usersByDay = await accumulatedTotalUsersByDay(periodArray);
+            res.status(200).json({
+              success: true,
+              usersStats: usersByDay,
+            });
+            break;
+          default:
+            res.status(400).json({
+              success: false,
+              message: "Invalid aggregation type",
+            });
+            break;
+        }
+        break;
+
+      case "commits":
+        switch (aggregation) {
+          case "month":
+            const commitsByMonth = await accumulatedTotalCommitsByMonth(
+              periodArray[0],
+              periodArray[1]
+            );
+            res.status(200).json({
+              success: true,
+              commitsStats: commitsByMonth,
+            });
+            break;
+
+          case "day":
+            const commitsByDay = await accumulatedTotalCommitsByDay(
+              periodArray[0],
+              periodArray[1]
+            );
+            res.status(200).json({
+              success: true,
+              commitsStats: commitsByDay,
+            });
+            break;
+
+          default:
+            res.status(400).json({
+              success: false,
+              message: "Invalid aggregation type",
+            });
+            break;
+        }
+        break;
+
+      default:
+        res.status(400).json({
+          success: false,
+          message: "Invalid type",
+        });
+        break;
+    }
+  } else {
+    res.status(400).json({
+      success: false,
+      message: "Please specifiy a period of time",
+    });
+  }
 });
 
 export default router;
