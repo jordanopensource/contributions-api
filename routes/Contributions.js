@@ -172,7 +172,7 @@ const accumulatedTotalCommitsByMonth = async (from, to) => {
     let month = date.getMonth();
     let year = date.getFullYear();
     if (commitsByMonth[year] === undefined) {
-      commitsByMonth[year] = {};
+      commitsByMonth[year] = [];
     }
     if (commitsByMonth[year][month] === undefined) {
       commitsByMonth[year][month] = 0;
@@ -180,16 +180,7 @@ const accumulatedTotalCommitsByMonth = async (from, to) => {
     commitsByMonth[year][month]++;
   }
 
-  let commitsAccumulationByMonth = {};
-  let accumulation = 0;
-  for (const year in commitsByMonth) {
-    commitsAccumulationByMonth[year] = [];
-    for (const month in commitsByMonth[year]) {
-      accumulation += commitsByMonth[year][month];
-      commitsAccumulationByMonth[year][month] = accumulation;
-    }
-  }
-  return commitsAccumulationByMonth;
+  return commitsByMonth;
 };
 
 const accumulatedTotalCommitsByDay = async (from, to) => {
@@ -225,19 +216,7 @@ const accumulatedTotalCommitsByDay = async (from, to) => {
     commitsByDay[year][month][day]++;
   }
 
-  let commitsAccumulationByDay = {};
-  let accumulation = 0;
-  for (const year in commitsByDay) {
-    commitsAccumulationByDay[year] = {};
-    for (const month in commitsByDay[year]) {
-      commitsAccumulationByDay[year][month] = [];
-      for (const day in commitsByDay[year][month]) {
-        accumulation += commitsByDay[year][month][day];
-        commitsAccumulationByDay[year][month][day] = accumulation;
-      }
-    }
-  }
-  return commitsAccumulationByDay;
+  return commitsByDay;
 };
 
 /**
