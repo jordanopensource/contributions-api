@@ -21,7 +21,7 @@
   </p>
 </p>
 
-[![Build Status](https://builds.josa.dev/api/badges/jordanopensource/contributions-api/status.svg)](https://builds.josa.dev/jordanopensource/contributions-api)
+[![Build Status](https://builds.josa.dev/api/badges/jordanopensource/contributions-api/status.svg?ref=refs/heads/development)](https://builds.josa.dev/jordanopensource/contributions-api)
 
 <!-- TABLE OF CONTENTS -->
 <details open="open">
