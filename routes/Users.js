@@ -92,7 +92,10 @@ const GetThePerviousMonthCommits = _commitsList => {
   const lastMonth = new Date(currentDate.setMonth(currentDate.getMonth() - 1));
 
   const lastMonthCommits = _commitsList.filter(commit => {
-    if (new Date(commit.occurredAt).getMonth() === lastMonth.getMonth()) {
+    if (
+      new Date(commit.occurredAt).getMonth() === lastMonth.getMonth() &&
+      new Date(commit.occurredAt).getFullYear() === lastMonth.getFullYear()
+    ) {
       return true;
     }
     return false;
@@ -267,7 +270,7 @@ router.get("/users", async (req, res) => {
         success: true,
         users,
         totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit)
+        totalPages: Math.ceil(rankedUsers.length / limit),
       });
     } else if (sort_by === "commit") {
       const rankedUsers = usersResponse(
@@ -281,7 +284,7 @@ router.get("/users", async (req, res) => {
         success: true,
         users,
         totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit)
+        totalPages: Math.ceil(rankedUsers.length / limit),
       });
     }
   } else if (period === "this_year") {
@@ -297,7 +300,7 @@ router.get("/users", async (req, res) => {
         success: true,
         users,
         totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit)
+        totalPages: Math.ceil(rankedUsers.length / limit),
       });
     } else if (sort_by === "commit") {
       const rankedUsers = usersResponse(
@@ -311,7 +314,7 @@ router.get("/users", async (req, res) => {
         success: true,
         users,
         totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit)
+        totalPages: Math.ceil(rankedUsers.length / limit),
       });
     }
   } else if (period === "last_month") {
@@ -327,7 +330,7 @@ router.get("/users", async (req, res) => {
         success: true,
         users,
         totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit)
+        totalPages: Math.ceil(rankedUsers.length / limit),
       });
     } else if (sort_by === "commit") {
       const rankedUsers = usersResponse(
@@ -341,7 +344,7 @@ router.get("/users", async (req, res) => {
         success: true,
         users,
         totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit)
+        totalPages: Math.ceil(rankedUsers.length / limit),
       });
     }
   }
