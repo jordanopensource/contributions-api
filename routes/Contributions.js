@@ -131,6 +131,50 @@ const accumulatedTotalOrganizationsByMonth = async periodArray => {
   return organizationsCreatedAccumulationByMonth;
 };
 
+const accumulatedTotalOrganizationsByDay = async periodArray => {
+  let organizations = await getOrganizationsCreatedBetweenTwoDates(
+    periodArray[0],
+    periodArray[1]
+  );
+
+  let organizationsCreatedByDay = {};
+  for (const organization of organizations) {
+    let date = new Date(organization.organization_createdAt);
+    let day = date.getDate();
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    if (organizationsCreatedByDay[year] === undefined) {
+      organizationsCreatedByDay[year] = {};
+    }
+    if (organizationsCreatedByDay[year][month] === undefined) {
+      organizationsCreatedByDay[year][month] = new Array(
+        Number(getDaysInAMonth(month, year))
+      ).fill(0);
+    }
+    if (organizationsCreatedByDay[year][month][day] === undefined) {
+      organizationsCreatedByDay[year][month][day] = 0;
+    }
+    organizationsCreatedByDay[year][month][day]++;
+  }
+
+  let organizationsCreatedAccumulationByDay = {};
+  for (const year in organizationsCreatedByDay) {
+    organizationsCreatedAccumulationByDay[year] = {};
+    for (const month in organizationsCreatedByDay[year]) {
+      organizationsCreatedAccumulationByDay[year][month] = [];
+      let accumulation = await countOrganizationsCreatedBeforeDate(
+        new Date(year, month, 1).toISOString()
+      );
+      for (const day in organizationsCreatedByDay[year][month]) {
+        accumulation += organizationsCreatedByDay[year][month][day];
+        organizationsCreatedAccumulationByDay[year][month][day] = accumulation;
+      }
+    }
+  }
+
+  return organizationsCreatedAccumulationByDay;
+};
+
 const accumulatedTotalUsersByMonth = async periodArray => {
   let users = await getUsersCreatedBetweenTwoDates(
     periodArray[0],
@@ -421,21 +465,24 @@ router.get("/organizations/stats", async (req, res) => {
   let { period, aggregation } = req.query;
   aggregation = !aggregation ? "month" : aggregation;
   if (period) {
+    const periodArray = period.split("_");
     switch (aggregation) {
       case "day":
+        const organizationsByDay = await accumulatedTotalOrganizationsByDay(
+          periodArray
+        );
         res.status(200).json({
           success: true,
-          "message": "not implemented yet",
+          organizationsStats: organizationsByDay,
         });
         break;
       default:
-        const periodArray = period.split("_");
         const organizationsByMonth = await accumulatedTotalOrganizationsByMonth(
           periodArray
         );
         res.status(200).json({
           success: true,
-          organizationsByMonth,
+          organizationsStats: organizationsByMonth,
         });
         break;
     }
