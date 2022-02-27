@@ -289,7 +289,7 @@ router.get("/contributions", async (req, res) => {
  *        404:
  *          description: Check your internet connection and try again
  */
-router.get("/stats/contributors", async (req, res) => {
+router.get("/contributors/stats", async (req, res) => {
   let { type, period, aggregation } = req.query;
   type = !type ? "users" : type;
   aggregation = !aggregation ? "month" : aggregation;
