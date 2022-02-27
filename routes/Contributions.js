@@ -2,6 +2,7 @@ import Mongoose from "mongoose";
 import express from "express";
 
 import User from "../models/user.js";
+import Organization from "../models/organization.js";
 
 const router = express.Router();
 
@@ -75,6 +76,14 @@ const countUsersCreatedBetweenTwoDates = async (startDate, endDate) => {
       $lte: endDate + "T23:59:59.999Z",
     },
   }).countDocuments();
+};
+
+const countOrganizationsCreatedBeforeDate = async date => {
+  return await Organization.find({
+    organization_createdAt: {
+      $lt: date,
+    },
+  });
 };
 
 const accumulatedTotalUsersByMonth = async periodArray => {
