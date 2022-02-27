@@ -69,6 +69,18 @@ const getUsersCreatedBetweenTwoDates = async (startDate, endDate) => {
   );
 };
 
+const getOrganizationsCreatedBetweenTwoDates = async (startDate, endDate) => {
+  return await Organization.find(
+    {
+      organization_createdAt: {
+        $gte: startDate + "T00:00:00.000Z",
+        $lte: endDate + "T23:59:59.999Z",
+      },
+    },
+    "organization_createdAt"
+  );
+};
+
 const countUsersCreatedBetweenTwoDates = async (startDate, endDate) => {
   return await User.find({
     user_createdAt: {
@@ -83,7 +95,40 @@ const countOrganizationsCreatedBeforeDate = async date => {
     organization_createdAt: {
       $lt: date,
     },
-  });
+  }).countDocuments();
+};
+
+const accumulatedTotalOrganizationsByMonth = async periodArray => {
+  let organizations = await getOrganizationsCreatedBetweenTwoDates(
+    periodArray[0],
+    periodArray[1]
+  );
+
+  let organizationsCreatedByMonth = {};
+  for (const organization of organizations) {
+    let date = new Date(organization.organization_createdAt);
+    let month = date.getMonth();
+    let year = date.getFullYear();
+    if (organizationsCreatedByMonth[year] === undefined) {
+      organizationsCreatedByMonth[year] = {};
+    }
+    if (organizationsCreatedByMonth[year][month] === undefined) {
+      organizationsCreatedByMonth[year][month] = 0;
+    }
+    organizationsCreatedByMonth[year][month]++;
+  }
+
+  let organizationsCreatedAccumulationByMonth = {};
+  for (const year in organizationsCreatedByMonth) {
+    organizationsCreatedAccumulationByMonth[year] = [];
+    let accumulation = await countOrganizationsCreatedBeforeDate(year);
+    for (const month in organizationsCreatedByMonth[year]) {
+      accumulation += organizationsCreatedByMonth[year][month];
+      organizationsCreatedAccumulationByMonth[year][month] = accumulation;
+    }
+  }
+
+  return organizationsCreatedAccumulationByMonth;
 };
 
 const accumulatedTotalUsersByMonth = async periodArray => {
@@ -361,6 +406,36 @@ router.get("/contributors/stats", async (req, res) => {
         res.status(400).json({
           success: false,
           message: "Invalid type",
+        });
+        break;
+    }
+  } else {
+    res.status(400).json({
+      success: false,
+      message: "Please specifiy a period of time",
+    });
+  }
+});
+
+router.get("/organizations/stats", async (req, res) => {
+  let { period, aggregation } = req.query;
+  aggregation = !aggregation ? "month" : aggregation;
+  if (period) {
+    switch (aggregation) {
+      case "day":
+        res.status(200).json({
+          success: true,
+          "message": "not implemented yet",
+        });
+        break;
+      default:
+        const periodArray = period.split("_");
+        const organizationsByMonth = await accumulatedTotalOrganizationsByMonth(
+          periodArray
+        );
+        res.status(200).json({
+          success: true,
+          organizationsByMonth,
         });
         break;
     }
