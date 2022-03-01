@@ -5,6 +5,101 @@ import Organization from "../models/organization.js";
 
 const router = express.Router();
 
+const rankOrgsBasedOnReposNumber = _orgsArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let orgsRanks = [];
+
+  let orgsSorted = _orgsArray.sort((a, b) => {
+    return b.repositories_count - a.repositories_count;
+  });
+  orgsSorted.forEach(org => {
+    if (org.repositories_count !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    orgsRanks.push({
+      ...org,
+      currentRank,
+    });
+    rankValue = org.repositories_count;
+  });
+
+  return orgsRanks;
+};
+
+const rankOrgsBasedOnReposStars = _orgsArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let orgsRanks = [];
+
+  let orgsSorted = _orgsArray.sort((a, b) => {
+    return b.repositories_stars_count - a.repositories_stars_count;
+  });
+  orgsSorted.forEach(org => {
+    if (org.repositories_stars_count !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    orgsRanks.push({
+      ...org,
+      currentRank,
+    });
+    rankValue = org.repositories_stars_count;
+  });
+
+  return orgsRanks;
+};
+
+const rankOrgsBasedOnOrganizationMembers = _orgsArray => {
+  let startingRank = 1;
+  let currentRank = startingRank;
+  let rankValue = null;
+  let orgsRanks = [];
+
+  let orgsSorted = _orgsArray.sort((a, b) => {
+    return b.members_count - a.members_count;
+  });
+  orgsSorted.forEach(org => {
+    if (org.members_count !== rankValue && rankValue !== null) {
+      currentRank++;
+    }
+    orgsRanks.push({
+      ...org,
+      currentRank,
+    });
+    rankValue = org.members_count;
+  });
+
+  return orgsRanks;
+};
+
+const orgsResponse = (_orgsArray, _rankFunc) => {
+  let unRankedOrgs = [];
+
+  for (let org of _orgsArray) {
+    let orgRepoStarsNum = 0;
+    for (let repo of org.repositories) {
+      orgRepoStarsNum += repo.starsCount;
+    }
+
+    let newOrgObject = {
+      username: org.username,
+      name: org.name,
+      avatar_url: org.avatar_url,
+      repositories_count: org.repositories_count,
+      repositories_stars_count: orgRepoStarsNum,
+      members_count: org.members.length,
+    };
+
+    unRankedOrgs.push(newOrgObject);
+  }
+
+  const rankedOrgs = _rankFunc(unRankedOrgs);
+
+  return rankedOrgs;
+};
+
 /**
  * @swagger
  * components:
@@ -91,28 +186,44 @@ const router = express.Router();
  *           description: Check your internet connection
  */
 router.get("/orgs", async (req, res) => {
-  let { limit, page, sort } = req.query;
+  let { limit, page, sort_by } = req.query;
   page = !page ? 1 : page;
-  limit = limit ? Number(limit) : 100;
-  let orgs = [];
-  switch (sort) {
-    case "asc":
-      orgs = await Organization.paginate(
-        {},
-        { page, limit, sort: { repositories_count: 1 } }
-      );
-      break;
-    case "desc":
-      orgs = await Organization.paginate(
-        {},
-        { page, limit, sort: { repositories_count: -1 } }
-      );
-      break;
-    default:
-      orgs = await Organization.paginate({}, { page, limit, sort: {} });
-      break;
+  limit = limit ? Number(limit) : 5;
+  sort_by = !sort_by ? "repos_num" : sort_by;
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+
+  const orgsArray = await Organization.find(
+    {},
+    "username avatar_url name repositories_count repositories members"
+  );
+
+  if (sort_by === "repos_stars") {
+    const rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposStars);
+    console.log(rankedOrgs);
+    const orgs = rankedOrgs.slice(startIndex, endIndex);
+    res.status(200).json({
+      success: true,
+      orgs,
+    });
+  } else if (sort_by === "org_members") {
+    const rankedOrgs = orgsResponse(
+      orgsArray,
+      rankOrgsBasedOnOrganizationMembers
+    );
+    const orgs = rankedOrgs.slice(startIndex, endIndex);
+    res.status(200).json({
+      success: true,
+      orgs,
+    });
+  } else {
+    const rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposNumber);
+    const orgs = rankedOrgs.slice(startIndex, endIndex);
+    res.status(200).json({
+      success: true,
+      orgs,
+    });
   }
-  res.status(200).json({ success: true, orgs });
 });
 
 /**
