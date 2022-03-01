@@ -204,6 +204,8 @@ router.get("/orgs", async (req, res) => {
     res.status(200).json({
       success: true,
       orgs,
+      totalOrganizations: rankedOrgs.length,
+      totalPages: Math.ceil(rankedOrgs.length / limit),
     });
   } else if (sort_by === "org_members") {
     const rankedOrgs = orgsResponse(
@@ -214,6 +216,8 @@ router.get("/orgs", async (req, res) => {
     res.status(200).json({
       success: true,
       orgs,
+      totalOrganizations: rankedOrgs.length,
+      totalPages: Math.ceil(rankedOrgs.length / limit),
     });
   } else {
     const rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposNumber);
@@ -221,6 +225,8 @@ router.get("/orgs", async (req, res) => {
     res.status(200).json({
       success: true,
       orgs,
+      totalOrganizations: rankedOrgs.length,
+      totalPages: Math.ceil(rankedOrgs.length / limit),
     });
   }
 });
