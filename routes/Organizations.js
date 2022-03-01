@@ -200,7 +200,6 @@ router.get("/orgs", async (req, res) => {
 
   if (sort_by === "repos_stars") {
     const rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposStars);
-    console.log(rankedOrgs);
     const orgs = rankedOrgs.slice(startIndex, endIndex);
     res.status(200).json({
       success: true,
