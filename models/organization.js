@@ -34,6 +34,9 @@ const organizationSchema = new Schema(
     repositories: {
       type: Array,
     },
+    members: {
+      type: Array,
+    },
     repositories_count: Number,
   },
   { timestamps: true }
