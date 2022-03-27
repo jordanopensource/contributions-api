@@ -117,7 +117,8 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
         userCommitsCount += commit.commitCount;
         repoCommitCount += commit.commitCount;
       }
-      userScore += repoCommitCount * repo.starsCount;
+      let repoStarsCount = repo.starsCount ? repo.starsCount : 1;
+      userScore += Math.ceil(repoCommitCount * Math.log10(repoStarsCount));
     }
 
     let newUserObject = {
