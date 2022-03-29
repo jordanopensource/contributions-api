@@ -125,6 +125,7 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
       username: user.username,
       name: user.name,
       avatar_url: user.avatar_url,
+      profile_url: user.github_profile_url,
       commitsTotalCount: userCommitsCount,
       score: userScore,
     };
@@ -253,7 +254,7 @@ router.get("/users", async (req, res) => {
   if (firstVisit === true) {
     usersArray = await User.find(
       {},
-      "username name commit_contributions avatar_url"
+      "username name commit_contributions avatar_url github_profile_url"
     );
     firstVisit = false;
   }
