@@ -128,6 +128,7 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
       profile_url: user.github_profile_url,
       commitsTotalCount: userCommitsCount,
       score: userScore,
+      isJOSAMember: user.isJOSAMember,
     };
     unRankedUsers.push(newUserObject);
   }
