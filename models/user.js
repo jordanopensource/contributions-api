@@ -44,6 +44,10 @@ const userSchema = new Schema(
     score: {
       type: Number,
     },
+    isJOSAMember: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
