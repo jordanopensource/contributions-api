@@ -136,6 +136,64 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
   return rankedUsers;
 };
 
+const getUsers = async (usersArray, sort_by, period, page, limit) => {
+  let users = [];
+  let rankedUsers = [];
+  const startIndex = (page - 1) * limit;
+  const endIndex = page * limit;
+  if (period === "last_30_days") {
+    if (sort_by === "score") {
+      const rankedUsers = usersResponse(
+        usersArray,
+        GetLast30DaysCommits,
+        RankUsersByScore
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    } else if (sort_by === "commit") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetLast30DaysCommits,
+        RankUsersByContributions
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    }
+  } else if (period === "this_year") {
+    if (sort_by === "score") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetThisYearCommits,
+        RankUsersByScore
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    } else if (sort_by === "commit") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetThisYearCommits,
+        RankUsersByContributions
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    }
+  } else if (period === "last_month") {
+    if (sort_by === "score") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetThePerviousMonthCommits,
+        RankUsersByScore
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    } else if (sort_by === "commit") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetThePerviousMonthCommits,
+        RankUsersByContributions
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    }
+  }
+
+  return users;
+};
+
 /**
  * @swagger
  * components:
@@ -243,112 +301,47 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
  *           description: Check your internet connection
  */
 router.get("/users", async (req, res) => {
-  let { limit, page, sort_by, period } = req.query;
+  let { limit, page, sort_by, period, contributors } = req.query;
   limit = limit ? Number(limit) : 5;
   page = !page ? 1 : page;
   sort_by = !sort_by ? "score" : sort_by;
   period = !period ? "last_30_days" : period;
-  const startIndex = (page - 1) * limit;
-  const endIndex = page * limit;
+  contributors = !contributors ? "all" : contributors;
 
   if (firstVisit === true) {
     usersArray = await User.find(
       {},
-      "username name commit_contributions avatar_url github_profile_url"
+      "username name commit_contributions avatar_url github_profile_url isJOSAMember"
     );
     firstVisit = false;
   }
 
-  if (period === "last_30_days") {
-    if (sort_by === "score") {
-      const rankedUsers = usersResponse(
-        usersArray,
-        GetLast30DaysCommits,
-        RankUsersByScore
-      );
-      const users = rankedUsers.slice(startIndex, endIndex);
-
-      res.status(200).json({
-        success: true,
-        users,
-        totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit),
-      });
-    } else if (sort_by === "commit") {
-      const rankedUsers = usersResponse(
-        usersArray,
-        GetLast30DaysCommits,
-        RankUsersByContributions
-      );
-      const users = rankedUsers.slice(startIndex, endIndex);
-
-      res.status(200).json({
-        success: true,
-        users,
-        totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit),
-      });
-    }
-  } else if (period === "this_year") {
-    if (sort_by === "score") {
-      const rankedUsers = usersResponse(
-        usersArray,
-        GetThisYearCommits,
-        RankUsersByScore
-      );
-      const users = rankedUsers.slice(startIndex, endIndex);
-
-      res.status(200).json({
-        success: true,
-        users,
-        totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit),
-      });
-    } else if (sort_by === "commit") {
-      const rankedUsers = usersResponse(
-        usersArray,
-        GetThisYearCommits,
-        RankUsersByContributions
-      );
-      const users = rankedUsers.slice(startIndex, endIndex);
-
-      res.status(200).json({
-        success: true,
-        users,
-        totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit),
-      });
-    }
-  } else if (period === "last_month") {
-    if (sort_by === "score") {
-      const rankedUsers = usersResponse(
-        usersArray,
-        GetThePerviousMonthCommits,
-        RankUsersByScore
-      );
-      const users = rankedUsers.slice(startIndex, endIndex);
-
-      res.status(200).json({
-        success: true,
-        users,
-        totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit),
-      });
-    } else if (sort_by === "commit") {
-      const rankedUsers = usersResponse(
-        usersArray,
-        GetThePerviousMonthCommits,
-        RankUsersByContributions
-      );
-      const users = rankedUsers.slice(startIndex, endIndex);
-
-      res.status(200).json({
-        success: true,
-        users,
-        totalUsers: rankedUsers.length,
-        totalPages: Math.ceil(rankedUsers.length / limit),
-      });
-    }
+  if (contributors === "all") {
+    const users = await getUsers(usersArray, sort_by, period, page, limit);
+    res.status(200).json({
+      success: true,
+      users,
+      totalUsers: usersArray.length,
+      totalPages: Math.ceil(usersArray.length / limit),
+    });
+  } else if (contributors === "members") {
+    const josaMembers = await User.find(
+      { isJOSAMember: true },
+      "username name commit_contributions avatar_url github_profile_url isJOSAMember"
+    );
+    const users = await getUsers(josaMembers, sort_by, period, page, limit);
+    res.status(200).json({
+      success: true,
+      users: users,
+      totalUsers: josaMembers.length,
+      totalPages: Math.ceil(josaMembers.length / limit),
+    });
+  } else {
+    res.status(404).json({
+      success: false,
+      message:
+        "Invalid contributors query parameter, please specify 'all' or 'members'.",
+    });
   }
 });
 
