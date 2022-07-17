@@ -1,11 +1,13 @@
-FROM node:14.18-alpine3.14
+FROM node:16-alpine3.14
+
+COPY package*.json /tmp/
+RUN cd /tmp && npm install
 
 WORKDIR /app
-COPY package*.json /tmp/
-
-RUN cd /tmp && npm install && cp -r node_modules/ /app
 
 COPY . .
+
+RUN mv /tmp/node_modules .
 
 ENV DB_URL mongodb://localhost:27017
 ENV HOST localhost
