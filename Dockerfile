@@ -9,7 +9,11 @@ COPY . .
 
 RUN mv /tmp/node_modules .
 
-ENV DB_URL mongodb://localhost:27017
+ENV DATABASE_HOST  localhost
+ENV DATABASE_PORT  27017
+ENV DATABASE_NAME top-contributors
+# ENV DATABASE_USER 
+# ENV DATABASE_PASSWORD 
 ENV HOST localhost
 ENV PORT 8080
 ENV NODE_ENV dev
