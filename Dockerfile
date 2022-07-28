@@ -1,23 +1,49 @@
-FROM node:16-alpine3.14
+ARG DATABASE_HOST=localhost DATABASE_PORT=27017 DATABASE_NAME=top-contributors HOST=localhost PORT=8080 NODE_ENV=dev USER=node
 
-COPY package*.json /tmp/
-RUN cd /tmp && npm install
+###########
+# BUILDER #
+###########
+FROM node:16-alpine3.14 AS builder
 
-WORKDIR /app
+# pass the global args
+ARG DATABASE_HOST
+ARG DATABASE_PORT
+ARG DATABASE_NAME
+ARG PORT
+ARG HOST
+ARG NODE_ENV
 
+# copy build context and install dependencies
+WORKDIR /workspace
 COPY . .
 
-RUN mv /tmp/node_modules .
+# Inject the enviromental variables
+ENV DATABASE_HOST=${DATABASE_HOST} DATABASE_PORT=${DATABASE_PORT} DATABASE_NAME=${DATABASE_NAME} PORT=${PORT} HOST=${HOST} NODE_ENV=${NODE_ENV}
 
-ENV DATABASE_HOST  localhost
-ENV DATABASE_PORT  27017
-ENV DATABASE_NAME top-contributors
-# ENV DATABASE_USER 
-# ENV DATABASE_PASSWORD 
-ENV HOST localhost
-ENV PORT 8080
-ENV NODE_ENV dev
+RUN npm install
 
-EXPOSE 8080
+###########
+# PROJECT #
+###########
+FROM node:16-slim
+
+# pass the global args
+ARG DATABASE_HOST
+ARG DATABASE_PORT
+ARG DATABASE_NAME
+ARG PORT
+ARG HOST
+ARG NODE_ENV
+ARG USER
+
+# copy builder output to project workdir
+WORKDIR /app
+COPY --from=builder --chown=${USER}:${USER} /workspace /app
+COPY --from=builder --chown=${USER}:${USER} /workspace/package.json /app/
+
+# Inject the enviromental variables
+ENV DATABASE_HOST=${DATABASE_HOST} DATABASE_PORT=${DATABASE_PORT} DATABASE_NAME=${DATABASE_NAME} PORT=${PORT} HOST=${HOST} NODE_ENV=${NODE_ENV}
+
+EXPOSE ${PORT}
 
 CMD [ "npm", "run", "start" ]
