@@ -49,7 +49,13 @@ if (process.env.LOGGING === "dev") {
 }
 
 const ConnectToDB = async () => {
-  await mongoose.connect(process.env.DB_URL, {
+  let DB_URL = 'mongodb://'+process.env.DATABASE_HOST+":"+process.env.DATABASE_PORT+'/'+process.env.DATABASE_NAME;
+  if(process.env.NODE_ENV !== 'dev'){
+    // DB_URL
+    // mongodb://username:password@host:port/database
+    DB_URL = 'mongodb://'+process.env.DATABASE_USER+':'+process.env.DATABASE_PASSWORD+'@'+process.env.DATABASE_HOST+":"+process.env.DATABASE_PORT+'/'+process.env.DATABASE_NAME;
+  }
+  await mongoose.connect(DB_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   });

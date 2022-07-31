@@ -6,14 +6,16 @@ services:
     container_name: top-contrib
     restart: unless-stopped
     environment:
-      DB_URL: mongodb://mongodb:27017/top-contributors
+      ENV DATABASE_HOST: localhost
+      ENV DATABASE_PORT: 27017
+      ENV DATABASE_NAME: top-contributors
       PORT: 8080
       HOST: localhost
     networks:
       - contributions-network
     ports:
       - "8080:8080"
-  
+
   mongodb:
     image: mongo
     container_name: mongodb
@@ -24,8 +26,6 @@ services:
       - contributions-network
     ports:
       - "27017:27017"
-
-  
 
 networks:
   contributions-network:
