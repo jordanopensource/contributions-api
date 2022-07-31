@@ -140,7 +140,10 @@ dist
 *.launch
 .settings/
 *.sublime-workspace
+*.swp
 
 # Other
 assets/data
 **.adminjs
+# Service worker
+sw.*
