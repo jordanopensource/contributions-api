@@ -39,10 +39,14 @@ ARG USER
 # copy builder output to project workdir
 WORKDIR /app
 COPY --from=builder --chown=${USER}:${USER} /workspace /app
+COPY --from=builder --chown=${USER}:${USER} /workspace/node_modules /app/node_modules
 COPY --from=builder --chown=${USER}:${USER} /workspace/package.json /app/
 
 # Inject the enviromental variables
 ENV DATABASE_HOST=${DATABASE_HOST} DATABASE_PORT=${DATABASE_PORT} DATABASE_NAME=${DATABASE_NAME} PORT=${PORT} HOST=${HOST} NODE_ENV=${NODE_ENV}
+
+# set user context
+USER ${USER}
 
 EXPOSE ${PORT}
 
