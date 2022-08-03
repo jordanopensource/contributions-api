@@ -1,0 +1,8 @@
+# Drone CI File!
+
+kind: template
+load: base.jsonnet
+
+data:
+  repositoryName: josaorg/contributions-api
+  releaseName: contributions-api

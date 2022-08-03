@@ -1,0 +1,32 @@
+services:
+  app:
+    build:
+      context: .
+    image: top-contributors:latest
+    container_name: top-contrib
+    restart: unless-stopped
+    environment:
+      ENV DATABASE_HOST: localhost
+      ENV DATABASE_PORT: 27017
+      ENV DATABASE_NAME: top-contributors
+      PORT: 8080
+      HOST: localhost
+    networks:
+      - contributions-network
+    ports:
+      - "8080:8080"
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_DATABASE: top-contributors
+    networks:
+      - contributions-network
+    ports:
+      - "27017:27017"
+
+networks:
+  contributions-network:
+    driver: bridge
