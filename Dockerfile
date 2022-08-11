@@ -1,4 +1,4 @@
-ARG DATABASE_HOST=localhost DATABASE_PORT=27017 DATABASE_NAME=top-contributors HOST=localhost PORT=8080 NODE_ENV=dev USER=node TLS_ENABLED=true CA_PATH='/certificates/do-mongodb-ca-certificate.crt'
+ARG DATABASE_HOST=localhost DATABASE_PORT=27017 DATABASE_NAME=top-contributors HOST=localhost PORT=8080 NODE_ENV=dev USER=node TLS_ENABLED=true CA_PATH='/app/certificates/do-mongodb-ca-certificate.crt'
 
 ###########
 # BUILDER #
