@@ -100,6 +100,16 @@ app.get("*", (req, res) => {
 });
 
 app.listen(port, async () => {
+  console.info(
+    `Build: #${process.env.DRONE_BUILD_NUMBER} (${process.env.DRONE_COMMIT_SHA})`
+  );
+  if (process.env.TARGET_ENV) {
+    console.log(`Environment: ${process.env.TARGET_ENV}`);
+  }
+  console.info(`---------------------------`);
+  console.info(`Build Link: ${process.env.DRONE_BUILD_LINK}`);
+  console.info(`Commit Link: ${process.env.DRONE_COMMIT_LINK}`);
+  console.info(`---------------------------`);
   console.log(`Express server listening on port: ${port}`);
   await ConnectToDB();
 });
