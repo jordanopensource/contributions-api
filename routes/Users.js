@@ -68,6 +68,19 @@ const GetThisYearCommits = _commitsList => {
   return currentYearCommits;
 };
 
+const GetLastYearCommits = _commitsList => {
+  const currentDate = new Date();
+  const lastYear = currentDate.getFullYear() - 1;
+  const lastYearCommits = _commitsList.filter(commit => {
+    if (new Date(commit.occurredAt).getFullYear() === lastYear) {
+      return true;
+    }
+    return false;
+  });
+
+  return lastYearCommits;
+};
+
 const GetLast30DaysCommits = _commitsList => {
   const currentDate = new Date();
   const currentDateString = currentDate.toISOString();
@@ -187,6 +200,22 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
       rankedUsers = usersResponse(
         usersArray,
         GetThePerviousMonthCommits,
+        RankUsersByContributions
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    }
+  } else if (period === "last_year") {
+    if (sort_by === "score") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetLastYearCommits,
+        RankUsersByScore
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    } else if (sort_by === "commit") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetLastYearCommits,
         RankUsersByContributions
       );
       users = rankedUsers.slice(startIndex, endIndex);
