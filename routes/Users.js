@@ -7,6 +7,14 @@ const router = express.Router();
 
 let firstVisit = true;
 let usersArray = [];
+let usersToAdd = [];
+
+const FetchUsers = async () => {
+  usersArray = await User.find(
+    {},
+    "username name commit_contributions avatar_url github_profile_url isJOSAMember"
+  );
+};
 
 const RankUsersByScore = _usersArray => {
   let startingRank = 1;
@@ -65,6 +73,19 @@ const GetThisYearCommits = _commitsList => {
   });
 
   return currentYearCommits;
+};
+
+const GetLastYearCommits = _commitsList => {
+  const currentDate = new Date();
+  const lastYear = currentDate.getFullYear() - 1;
+  const lastYearCommits = _commitsList.filter(commit => {
+    if (new Date(commit.occurredAt).getFullYear() === lastYear) {
+      return true;
+    }
+    return false;
+  });
+
+  return lastYearCommits;
 };
 
 const GetLast30DaysCommits = _commitsList => {
@@ -190,6 +211,22 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
       );
       users = rankedUsers.slice(startIndex, endIndex);
     }
+  } else if (period === "last_year") {
+    if (sort_by === "score") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetLastYearCommits,
+        RankUsersByScore
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    } else if (sort_by === "commit") {
+      rankedUsers = usersResponse(
+        usersArray,
+        GetLastYearCommits,
+        RankUsersByContributions
+      );
+      users = rankedUsers.slice(startIndex, endIndex);
+    }
   }
 
   return users;
@@ -310,11 +347,10 @@ router.get("/users", async (req, res) => {
   contributors = !contributors ? "all" : contributors;
 
   if (firstVisit === true) {
-    usersArray = await User.find(
-      {},
-      "username name commit_contributions avatar_url github_profile_url isJOSAMember"
-    );
     firstVisit = false;
+    await FetchUsers();
+    // Update the users every 1 hour
+    setInterval(FetchUsers, 60 * 60 * 1000);
   }
 
   if (contributors === "all") {
@@ -368,10 +404,17 @@ router.get("/users", async (req, res) => {
 router.get("/users/:username", async (req, res) => {
   let { username } = req.params;
   let user = await User.findOne({ username: username });
-  res.status(200).json({
-    success: true,
-    data: user,
-  });
+  if (user) {
+    res.status(200).json({
+      success: true,
+      data: user,
+    });
+  } else {
+    res.status(404).json({
+      success: true,
+      message: "there is no data for this user",
+    });
+  }
 });
 
 /**
@@ -399,10 +442,41 @@ router.get("/users/:username/commits", async (req, res) => {
     { username: username },
     "commit_contributions"
   );
+  if (userCommits) {
+    res.status(200).json({
+      success: true,
+      data: userCommits.commit_contributions,
+    });
+  } else {
+    usersToAdd.push(username);
+    res.status(404).json({
+      success: true,
+      message: "there is no data for this user",
+    });
+  }
+});
+
+router.get("/usersToAdd", async (req, res) => {
   res.status(200).json({
     success: true,
-    data: userCommits.commit_contributions,
+    data: usersToAdd,
   });
+});
+
+router.post("/users", async (req, res) => {
+  const { username } = req.body;
+  if (username) {
+    usersToAdd.push(username);
+    res.status(200).json({
+      success: true,
+      message: "user has been added to the list",
+    });
+  } else {
+    res.status(400).json({
+      success: false,
+      message: "please supply the username in the body",
+    });
+  }
 });
 
 export default router;
