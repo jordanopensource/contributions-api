@@ -9,6 +9,13 @@ let firstVisit = true;
 let usersArray = [];
 let usersToAdd = [];
 
+const FetchUsers = async () => {
+  usersArray = await User.find(
+    {},
+    "username name commit_contributions avatar_url github_profile_url isJOSAMember"
+  );
+};
+
 const RankUsersByScore = _usersArray => {
   let startingRank = 1;
   let currentRank = startingRank;
@@ -340,11 +347,10 @@ router.get("/users", async (req, res) => {
   contributors = !contributors ? "all" : contributors;
 
   if (firstVisit === true) {
-    usersArray = await User.find(
-      {},
-      "username name commit_contributions avatar_url github_profile_url isJOSAMember"
-    );
     firstVisit = false;
+    await FetchUsers();
+    // Update the users every 1 hour
+    setInterval(FetchUsers, 60 * 60 * 1000);
   }
 
   if (contributors === "all") {
