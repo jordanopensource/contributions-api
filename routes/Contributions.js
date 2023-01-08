@@ -3,6 +3,7 @@ import express from "express";
 
 import User from "../models/user.js";
 import Organization from "../models/organization.js";
+import Stat from "../models/stat.js";
 
 const router = express.Router();
 
@@ -492,6 +493,14 @@ router.get("/organizations/stats", async (req, res) => {
       message: "Please specifiy a period of time",
     });
   }
+});
+
+router.get("/stats/updated", async (req, res) => {
+  const stat = await Stat.findOne({}, {}, { sort: { "createdAt": -1 } });
+  res.status(200).json({
+    success: true,
+    lastUpdated: stat.createdAt,
+  });
 });
 
 export default router;
