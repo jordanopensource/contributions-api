@@ -196,7 +196,7 @@ router.get("/orgs", async (req, res) => {
 
   const orgsArray = await Organization.find(
     {},
-    "username avatar_url name repositories_count repositories members"
+    "username avatar_url name repositories_count repositories members github_profile_url"
   );
 
   if (sort_by === "repos_stars") {
