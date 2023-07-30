@@ -87,6 +87,7 @@ const orgsResponse = (_orgsArray, _rankFunc) => {
       username: org.username,
       name: org.name,
       avatar_url: org.avatar_url,
+      profile_url: org.github_profile_url,
       repositories_count: org.repositories_count,
       repositories_stars_count: orgRepoStarsNum,
       members_count: org.members.length,
