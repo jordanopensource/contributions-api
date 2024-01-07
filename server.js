@@ -74,10 +74,7 @@ const ConnectToDB = async () => {
       process.env.CA_PATH +
       "";
   }
-  await mongoose.connect(DB_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(DB_URL);
   console.info("Connected to the database");
   console.info(
     `Database Host: ${mongoose.connection.host}\nDatabase Port: ${mongoose.connection.port}\nDatabase Name: ${mongoose.connection.name}`
