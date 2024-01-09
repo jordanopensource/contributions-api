@@ -1,5 +1,6 @@
 import Mongoose from "mongoose";
 import express from "express";
+import Fuse from "fuse.js";
 
 import User from "../models/user.js";
 
@@ -158,11 +159,14 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
   return rankedUsers;
 };
 
-const getUsers = async (usersArray, sort_by, period, page, limit) => {
+const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
   let users = [];
   let rankedUsers = [];
   const startIndex = (page - 1) * limit;
   const endIndex = page * limit;
+  let totalUsers = usersArray.length;
+  let totalPages = Math.ceil(usersArray.length / limit);
+
   if (period === "last_30_days") {
     if (sort_by === "score") {
       const rankedUsers = usersResponse(
@@ -170,14 +174,28 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
         GetLast30DaysCommits,
         RankUsersByScore
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     } else if (sort_by === "commit") {
       rankedUsers = usersResponse(
         usersArray,
         GetLast30DaysCommits,
         RankUsersByContributions
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     }
   } else if (period === "this_year") {
     if (sort_by === "score") {
@@ -186,14 +204,28 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
         GetThisYearCommits,
         RankUsersByScore
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     } else if (sort_by === "commit") {
       rankedUsers = usersResponse(
         usersArray,
         GetThisYearCommits,
         RankUsersByContributions
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     }
   } else if (period === "last_month") {
     if (sort_by === "score") {
@@ -202,14 +234,28 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
         GetThePerviousMonthCommits,
         RankUsersByScore
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     } else if (sort_by === "commit") {
       rankedUsers = usersResponse(
         usersArray,
         GetThePerviousMonthCommits,
         RankUsersByContributions
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     }
   } else if (period === "last_year") {
     if (sort_by === "score") {
@@ -218,15 +264,53 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
         GetLastYearCommits,
         RankUsersByScore
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     } else if (sort_by === "commit") {
       rankedUsers = usersResponse(
         usersArray,
         GetLastYearCommits,
         RankUsersByContributions
       );
-      users = rankedUsers.slice(startIndex, endIndex);
+      if (search) {
+        const searchResults = searchUsers(rankedUsers, search);
+        totalUsers = searchResults.length;
+        totalPages = Math.ceil(searchResults.length / limit);
+        users = searchResults.slice(startIndex, endIndex);
+      } else {
+        users = rankedUsers.slice(startIndex, endIndex);
+      }
     }
+  }
+
+  return { users, totalUsers, totalPages };
+};
+
+const searchUsers = (usersArray, search) => {
+  const options = {
+    // At what point does the match algorithm give up.
+    // A threshold of 0.0 requires a perfect match (of both letters and location),
+    // a threshold of 1.0 would match anything.
+    threshold: 0.1,
+    isCaseSensitive: false,
+    // Search in `username` and in `name`
+    keys: ["username", "name"],
+  };
+
+  const users = [];
+
+  const fuse = new Fuse(usersArray, options);
+
+  const results = fuse.search(search);
+
+  for (const user of results) {
+    users.push(user.item);
   }
 
   return users;
@@ -339,7 +423,7 @@ const getUsers = async (usersArray, sort_by, period, page, limit) => {
  *           description: Check your internet connection
  */
 router.get("/users", async (req, res) => {
-  let { limit, page, sort_by, period, contributors } = req.query;
+  let { limit, page, sort_by, period, contributors, search } = req.query;
   limit = limit ? Number(limit) : 5;
   page = !page ? 1 : page;
   sort_by = !sort_by ? "score" : sort_by;
@@ -354,24 +438,38 @@ router.get("/users", async (req, res) => {
   }
 
   if (contributors === "all") {
-    const users = await getUsers(usersArray, sort_by, period, page, limit);
+    const { users, totalUsers, totalPages } = await getUsers(
+      usersArray,
+      sort_by,
+      period,
+      page,
+      limit,
+      search
+    );
     res.status(200).json({
       success: true,
       users,
-      totalUsers: usersArray.length,
-      totalPages: Math.ceil(usersArray.length / limit),
+      totalUsers,
+      totalPages,
     });
   } else if (contributors === "members") {
     const josaMembers = await User.find(
       { isJOSAMember: true },
       "username name commit_contributions avatar_url github_profile_url isJOSAMember"
     );
-    const users = await getUsers(josaMembers, sort_by, period, page, limit);
+    const { users, totalUsers, totalPages } = await getUsers(
+      josaMembers,
+      sort_by,
+      period,
+      page,
+      limit,
+      search
+    );
     res.status(200).json({
       success: true,
       users: users,
-      totalUsers: josaMembers.length,
-      totalPages: Math.ceil(josaMembers.length / limit),
+      totalUsers,
+      totalPages,
     });
   } else {
     res.status(404).json({

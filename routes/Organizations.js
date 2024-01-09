@@ -1,5 +1,6 @@
 import Mongoose from "mongoose";
 import express from "express";
+import Fuse from "fuse.js";
 
 import Organization from "../models/organization.js";
 
@@ -101,6 +102,30 @@ const orgsResponse = (_orgsArray, _rankFunc) => {
   return rankedOrgs;
 };
 
+const searchOrgs = (orgsArray, search) => {
+  const options = {
+    // At what point does the match algorithm give up.
+    // A threshold of 0.0 requires a perfect match (of both letters and location),
+    // a threshold of 1.0 would match anything.
+    threshold: 0.1,
+    isCaseSensitive: false,
+    // Search in `username` and in `name`
+    keys: ["username", "name"],
+  };
+
+  const orgs = [];
+
+  const fuse = new Fuse(orgsArray, options);
+
+  const results = fuse.search(search);
+
+  for (const org of results) {
+    orgs.push(org.item);
+  }
+
+  return orgs;
+};
+
 /**
  * @swagger
  * components:
@@ -187,7 +212,7 @@ const orgsResponse = (_orgsArray, _rankFunc) => {
  *           description: Check your internet connection
  */
 router.get("/orgs", async (req, res) => {
-  let { limit, page, sort_by } = req.query;
+  let { limit, page, sort_by, search } = req.query;
   page = !page ? 1 : page;
   limit = limit ? Number(limit) : 5;
   sort_by = !sort_by ? "repos_num" : sort_by;
@@ -200,7 +225,10 @@ router.get("/orgs", async (req, res) => {
   );
 
   if (sort_by === "repos_stars") {
-    const rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposStars);
+    let rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposStars);
+    if (search) {
+      rankedOrgs = searchOrgs(rankedOrgs, search);
+    }
     const orgs = rankedOrgs.slice(startIndex, endIndex);
     res.status(200).json({
       success: true,
@@ -209,10 +237,13 @@ router.get("/orgs", async (req, res) => {
       totalPages: Math.ceil(rankedOrgs.length / limit),
     });
   } else if (sort_by === "org_members") {
-    const rankedOrgs = orgsResponse(
+    let rankedOrgs = orgsResponse(
       orgsArray,
       rankOrgsBasedOnOrganizationMembers
     );
+    if (search) {
+      rankedOrgs = searchOrgs(rankedOrgs, search);
+    }
     const orgs = rankedOrgs.slice(startIndex, endIndex);
     res.status(200).json({
       success: true,
@@ -221,7 +252,10 @@ router.get("/orgs", async (req, res) => {
       totalPages: Math.ceil(rankedOrgs.length / limit),
     });
   } else {
-    const rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposNumber);
+    let rankedOrgs = orgsResponse(orgsArray, rankOrgsBasedOnReposNumber);
+    if (search) {
+      rankedOrgs = searchOrgs(rankedOrgs, search);
+    }
     const orgs = rankedOrgs.slice(startIndex, endIndex);
     res.status(200).json({
       success: true,
