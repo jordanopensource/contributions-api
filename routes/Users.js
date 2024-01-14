@@ -409,6 +409,8 @@ const searchUsers = (usersArray, search) => {
     // a threshold of 1.0 would match anything.
     threshold: 0.1,
     isCaseSensitive: false,
+    // We disable this to keep the original sorting of the user, by their rank
+    shouldSort: false,
     // Search in `username` and in `name`
     keys: ["username", "name"],
   };
