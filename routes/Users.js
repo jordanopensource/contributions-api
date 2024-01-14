@@ -13,7 +13,7 @@ let usersToAdd = [];
 const FetchUsers = async () => {
   usersArray = await User.find(
     {},
-    "username name commit_contributions avatar_url github_profile_url isJOSAMember"
+    "username name commit_contributions issue_contributions pr_contributions code_review_contributions avatar_url github_profile_url isJOSAMember"
   );
 };
 
@@ -47,88 +47,159 @@ const RankUsersByContributions = _usersArray => {
   let userRanks = [];
 
   let usersSorted = _usersArray.sort((a, b) => {
-    return b.commitsTotalCount - a.commitsTotalCount;
+    return b.contributionsTotalCount - a.contributionsTotalCount;
   });
   usersSorted.forEach(user => {
-    if (user.commitsTotalCount !== rankValue && rankValue !== null) {
+    if (user.contributionsTotalCount !== rankValue && rankValue !== null) {
       currentRank++;
     }
     userRanks.push({
       ...user,
       currentRank,
     });
-    rankValue = user.commitsTotalCount;
+    rankValue = user.contributionsTotalCount;
   });
 
   return userRanks;
 };
 
-const GetThisYearCommits = _commitsList => {
+const GetThisYearContributions = _contributionsList => {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
-  const currentYearCommits = _commitsList.filter(commit => {
-    if (new Date(commit.occurredAt).getFullYear() === currentYear) {
+  const currentYearContributions = _contributionsList.filter(contribution => {
+    if (new Date(contribution.occurredAt).getFullYear() === currentYear) {
       return true;
     }
     return false;
   });
 
-  return currentYearCommits;
+  return currentYearContributions;
 };
 
-const GetLastYearCommits = _commitsList => {
+const GetLastYearContributions = _contributionsList => {
   const currentDate = new Date();
   const lastYear = currentDate.getFullYear() - 1;
-  const lastYearCommits = _commitsList.filter(commit => {
-    if (new Date(commit.occurredAt).getFullYear() === lastYear) {
+  const lastYearContributions = _contributionsList.filter(contribution => {
+    if (new Date(contribution.occurredAt).getFullYear() === lastYear) {
       return true;
     }
     return false;
   });
 
-  return lastYearCommits;
+  return lastYearContributions;
 };
 
-const GetLast30DaysCommits = _commitsList => {
+const GetLast30DaysContributions = _contributionsList => {
   const currentDate = new Date();
   const currentDateString = currentDate.toISOString();
 
   const last30Days = currentDate.setDate(currentDate.getDate() - 30);
   const last30DaysString = new Date(last30Days).toISOString();
 
-  const last30DaysCommits = _commitsList.filter(commit => {
+  const last30DaysContributions = _contributionsList.filter(contribution => {
     if (
-      new Date(commit.occurredAt) >= new Date(last30DaysString) &&
-      new Date(commit.occurredAt) <= new Date(currentDateString)
+      new Date(contribution.occurredAt) >= new Date(last30DaysString) &&
+      new Date(contribution.occurredAt) <= new Date(currentDateString)
     ) {
       return true;
     }
     return false;
   });
 
-  return last30DaysCommits;
+  return last30DaysContributions;
 };
 
-const GetThePerviousMonthCommits = _commitsList => {
+const GetThePerviousMonthContributions = _contributionsList => {
   const currentDate = new Date();
   const lastMonth = new Date(currentDate.setMonth(currentDate.getMonth() - 1));
 
-  const lastMonthCommits = _commitsList.filter(commit => {
+  const lastMonthContributions = _contributionsList.filter(contribution => {
     if (
-      new Date(commit.occurredAt).getMonth() === lastMonth.getMonth() &&
-      new Date(commit.occurredAt).getFullYear() === lastMonth.getFullYear()
+      new Date(contribution.occurredAt).getMonth() === lastMonth.getMonth() &&
+      new Date(contribution.occurredAt).getFullYear() ===
+        lastMonth.getFullYear()
     ) {
       return true;
     }
     return false;
   });
 
-  return lastMonthCommits;
+  return lastMonthContributions;
 };
 
-const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
+const countAllContributions = (_usersArray, _periodFunc) => {
   let unRankedUsers = [];
+  for (const user of _usersArray) {
+    let userScore = 0;
+    let userCommitsCount = 0;
+    let userIssuesCount = 0;
+    let userPrsCount = 0;
+    let userCodeReviewsCount = 0;
+    // Count the commit contributions this user made
+    for (let repo of user?.commit_contributions) {
+      let repoCommitCount = 0;
+      let commitsInThisPeriod = _periodFunc(repo.commits);
+      for (const commit of commitsInThisPeriod) {
+        userCommitsCount += commit.commitCount;
+        repoCommitCount += commit.commitCount;
+      }
+      let repoStarsCount = repo.starsCount ? repo.starsCount : 1;
+      userScore += Math.ceil(repoCommitCount * Math.log10(repoStarsCount));
+    }
+    // Count the issues contributions this user made
+    for (let repo of user?.issue_contributions) {
+      let repoIssueCount = 0;
+      let issuesInThisPeriod = _periodFunc(repo.issues);
+      for (let index = 0; index < issuesInThisPeriod.length; index++) {
+        userIssuesCount += 1;
+        repoIssueCount += 1;
+      }
+      let repoStarsCount = repo.starsCount ? repo.starsCount : 1;
+      userScore += Math.ceil(repoIssueCount * Math.log10(repoStarsCount));
+    }
+    // Count the pull requests contributions this user made
+    for (let repo of user?.pr_contributions) {
+      let repoPrCount = 0;
+      let prsInThisPeriod = _periodFunc(repo.pullRequests);
+      for (let index = 0; index < prsInThisPeriod.length; index++) {
+        userPrsCount += 1;
+        repoPrCount += 1;
+      }
+      let repoStarsCount = repo.starsCount ? repo.starsCount : 1;
+      userScore += Math.ceil(repoPrCount * Math.log10(repoStarsCount));
+    }
+    // Count the code reviews contributions this user made
+    for (let repo of user?.code_review_contributions) {
+      let repoCodeReviewsCount = 0;
+      let codeReviewsInThisPeriod = _periodFunc(repo.codeReviews);
+      for (let index = 0; index < codeReviewsInThisPeriod.length; index++) {
+        userCodeReviewsCount += 1;
+        repoCodeReviewsCount += 1;
+      }
+      let repoStarsCount = repo.starsCount ? repo.starsCount : 1;
+      userScore += Math.ceil(repoCodeReviewsCount * Math.log10(repoStarsCount));
+    }
+    // Create the new user object and add them to the unRankedUsers array to rank them later
+    let newUserObject = {
+      username: user.username,
+      name: user.name,
+      avatar_url: user.avatar_url,
+      profile_url: user.github_profile_url,
+      contributionsTotalCount:
+        userCommitsCount +
+        userIssuesCount +
+        userPrsCount +
+        userCodeReviewsCount,
+      score: userScore,
+      isJOSAMember: user.isJOSAMember,
+    };
+    unRankedUsers.push(newUserObject);
+  }
+  return unRankedUsers;
+};
 
+const countOnlyCommits = (_usersArray, _periodFunc) => {
+  let unRankedUsers = [];
   for (let user of _usersArray) {
     let userScore = 0;
     let userCommitsCount = 0;
@@ -142,24 +213,55 @@ const usersResponse = (_usersArray, _periodFunc, _rankFunc) => {
       let repoStarsCount = repo.starsCount ? repo.starsCount : 1;
       userScore += Math.ceil(repoCommitCount * Math.log10(repoStarsCount));
     }
-
+    // Create the new user object and add them to the unRankedUsers array to rank them later
     let newUserObject = {
       username: user.username,
       name: user.name,
       avatar_url: user.avatar_url,
       profile_url: user.github_profile_url,
-      commitsTotalCount: userCommitsCount,
+      contributionsTotalCount: userCommitsCount,
       score: userScore,
       isJOSAMember: user.isJOSAMember,
     };
     unRankedUsers.push(newUserObject);
   }
+  return unRankedUsers;
+};
+
+const usersResponse = (
+  _usersArray,
+  _periodFunc,
+  _rankFunc,
+  _contribution_type
+) => {
+  let unRankedUsers = [];
+
+  switch (_contribution_type) {
+    case "all":
+      unRankedUsers = countAllContributions(_usersArray, _periodFunc);
+      break;
+    case "commits":
+      unRankedUsers = countOnlyCommits(_usersArray, _periodFunc);
+      break;
+    default:
+      unRankedUsers = countAllContributions(_usersArray, _periodFunc);
+      break;
+  }
+
   const rankedUsers = _rankFunc(unRankedUsers);
 
   return rankedUsers;
 };
 
-const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
+const getUsers = async (
+  usersArray,
+  sort_by,
+  period,
+  page,
+  limit,
+  search,
+  contribution_type
+) => {
   let users = [];
   let rankedUsers = [];
   const startIndex = (page - 1) * limit;
@@ -171,8 +273,9 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
     if (sort_by === "score") {
       const rankedUsers = usersResponse(
         usersArray,
-        GetLast30DaysCommits,
-        RankUsersByScore
+        GetLast30DaysContributions,
+        RankUsersByScore,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -182,11 +285,12 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
       } else {
         users = rankedUsers.slice(startIndex, endIndex);
       }
-    } else if (sort_by === "commit") {
+    } else if (sort_by === "contributions") {
       rankedUsers = usersResponse(
         usersArray,
-        GetLast30DaysCommits,
-        RankUsersByContributions
+        GetLast30DaysContributions,
+        RankUsersByContributions,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -201,8 +305,9 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
     if (sort_by === "score") {
       rankedUsers = usersResponse(
         usersArray,
-        GetThisYearCommits,
-        RankUsersByScore
+        GetThisYearContributions,
+        RankUsersByScore,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -212,11 +317,12 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
       } else {
         users = rankedUsers.slice(startIndex, endIndex);
       }
-    } else if (sort_by === "commit") {
+    } else if (sort_by === "contributions") {
       rankedUsers = usersResponse(
         usersArray,
-        GetThisYearCommits,
-        RankUsersByContributions
+        GetThisYearContributions,
+        RankUsersByContributions,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -231,8 +337,9 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
     if (sort_by === "score") {
       rankedUsers = usersResponse(
         usersArray,
-        GetThePerviousMonthCommits,
-        RankUsersByScore
+        GetThePerviousMonthContributions,
+        RankUsersByScore,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -242,11 +349,12 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
       } else {
         users = rankedUsers.slice(startIndex, endIndex);
       }
-    } else if (sort_by === "commit") {
+    } else if (sort_by === "contributions") {
       rankedUsers = usersResponse(
         usersArray,
-        GetThePerviousMonthCommits,
-        RankUsersByContributions
+        GetThePerviousMonthContributions,
+        RankUsersByContributions,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -261,8 +369,9 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
     if (sort_by === "score") {
       rankedUsers = usersResponse(
         usersArray,
-        GetLastYearCommits,
-        RankUsersByScore
+        GetLastYearContributions,
+        RankUsersByScore,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -272,11 +381,12 @@ const getUsers = async (usersArray, sort_by, period, page, limit, search) => {
       } else {
         users = rankedUsers.slice(startIndex, endIndex);
       }
-    } else if (sort_by === "commit") {
+    } else if (sort_by === "contributions") {
       rankedUsers = usersResponse(
         usersArray,
-        GetLastYearCommits,
-        RankUsersByContributions
+        GetLastYearContributions,
+        RankUsersByContributions,
+        contribution_type
       );
       if (search) {
         const searchResults = searchUsers(rankedUsers, search);
@@ -423,12 +533,13 @@ const searchUsers = (usersArray, search) => {
  *           description: Check your internet connection
  */
 router.get("/users", async (req, res) => {
-  let { limit, page, sort_by, period, contributors, search } = req.query;
+  let { limit, page, sort_by, period, contributors, type, search } = req.query;
   limit = limit ? Number(limit) : 5;
   page = !page ? 1 : page;
   sort_by = !sort_by ? "score" : sort_by;
   period = !period ? "last_30_days" : period;
   contributors = !contributors ? "all" : contributors;
+  type = !type ? "all" : type;
 
   if (firstVisit === true) {
     firstVisit = false;
@@ -444,7 +555,8 @@ router.get("/users", async (req, res) => {
       period,
       page,
       limit,
-      search
+      search,
+      type
     );
     res.status(200).json({
       success: true,
@@ -455,7 +567,7 @@ router.get("/users", async (req, res) => {
   } else if (contributors === "members") {
     const josaMembers = await User.find(
       { isJOSAMember: true },
-      "username name commit_contributions avatar_url github_profile_url isJOSAMember"
+      "username name commit_contributions issue_contributions pr_contributions code_review_contributions avatar_url github_profile_url isJOSAMember"
     );
     const { users, totalUsers, totalPages } = await getUsers(
       josaMembers,
@@ -463,7 +575,8 @@ router.get("/users", async (req, res) => {
       period,
       page,
       limit,
-      search
+      search,
+      type
     );
     res.status(200).json({
       success: true,
