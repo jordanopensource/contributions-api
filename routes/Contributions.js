@@ -11,41 +11,63 @@ const getDaysInAMonth = (month, year) => {
   return new Date(year, month + 1, 0).getDate();
 };
 
-const getLast30DaysCommits = _commitsList => {
+const getLast30DaysContributions = _contributionsList => {
   const currentDate = new Date();
   const currentDateString = currentDate.toISOString();
 
   const last30Days = currentDate.setDate(currentDate.getDate() - 30);
   const last30DaysString = new Date(last30Days).toISOString();
 
-  const last30DaysCommits = _commitsList.filter(commit => {
+  const last30DaysContributions = _contributionsList.filter(contribution => {
     if (
-      new Date(commit.occurredAt) >= new Date(last30DaysString) &&
-      new Date(commit.occurredAt) <= new Date(currentDateString)
+      new Date(contribution.occurredAt) >= new Date(last30DaysString) &&
+      new Date(contribution.occurredAt) <= new Date(currentDateString)
     ) {
       return true;
     }
     return false;
   });
 
-  return last30DaysCommits;
+  return last30DaysContributions;
 };
 
-const countLast30DaysCommits = async () => {
-  let users = await User.find({}, "commit_contributions");
-  let commitsList = [];
+const countLast30DaysContributions = async () => {
+  let users = await User.find(
+    {},
+    "commit_contributions issue_contributions pr_contributions code_review_contributions"
+  );
+  let contributionsList = [];
   for (const user of users) {
     for (const repo of user.commit_contributions) {
       for (const commit of repo.commits) {
-        commitsList.push(commit);
+        contributionsList.push(commit);
+      }
+    }
+    for (const repo of user.issue_contributions) {
+      for (const issue of repo.issues) {
+        contributionsList.push(issue);
+      }
+    }
+    for (const repo of user.pr_contributions) {
+      for (const pullRequest of repo.pullRequests) {
+        contributionsList.push(pullRequest);
+      }
+    }
+    for (const repo of user.code_review_contributions) {
+      for (const codeReview of repo.codeReviews) {
+        contributionsList.push(codeReview);
       }
     }
   }
-  const lastMonthsCommits = getLast30DaysCommits(commitsList);
+  const last30DaysContributions = getLast30DaysContributions(contributionsList);
 
   let count = 0;
-  for (const contribution of lastMonthsCommits) {
-    count += contribution.commitCount;
+  for (const contribution of last30DaysContributions) {
+    if (contribution?.commitCount) {
+      count += contribution.commitCount;
+    } else {
+      count += 1;
+    }
   }
   return count;
 };
@@ -252,70 +274,118 @@ const accumulatedTotalUsersByDay = async periodArray => {
   return usersCreatedAccumulationByDay;
 };
 
-const accumulatedTotalCommitsByMonth = async (from, to) => {
-  let users = await User.find({}, "commit_contributions");
-  let commitsList = [];
+const accumulatedTotalContributionsByMonth = async (from, to) => {
+  let users = await User.find(
+    {},
+    "commit_contributions issue_contributions pr_contributions code_review_contributions"
+  );
+  let contributionsList = [];
   for (const user of users) {
     for (const repo of user.commit_contributions) {
       for (const commit of repo.commits) {
         if (commit.occurredAt >= from && commit.occurredAt <= to) {
-          commitsList.push(commit);
+          contributionsList.push(commit);
+        }
+      }
+    }
+    for (const repo of user.issue_contributions) {
+      for (const issue of repo.issues) {
+        if (issue.occurredAt >= from && issue.occurredAt <= to) {
+          contributionsList.push(issue);
+        }
+      }
+    }
+    for (const repo of user.pr_contributions) {
+      for (const pullRequest of repo.pullRequests) {
+        if (pullRequest.occurredAt >= from && pullRequest.occurredAt <= to) {
+          contributionsList.push(pullRequest);
+        }
+      }
+    }
+    for (const repo of user.code_review_contributions) {
+      for (const codeReview of repo.codeReviews) {
+        if (codeReview.occurredAt >= from && codeReview.occurredAt <= to) {
+          contributionsList.push(codeReview);
         }
       }
     }
   }
 
-  let commitsByMonth = {};
-  for (const commit of commitsList) {
-    let date = new Date(commit.occurredAt);
+  let contributionsByMonth = {};
+  for (const contribution of contributionsList) {
+    let date = new Date(contribution.occurredAt);
     let month = date.getMonth();
     let year = date.getFullYear();
-    if (commitsByMonth[year] === undefined) {
-      commitsByMonth[year] = [];
+    if (contributionsByMonth[year] === undefined) {
+      contributionsByMonth[year] = [];
     }
-    if (commitsByMonth[year][month] === undefined) {
-      commitsByMonth[year][month] = 0;
+    if (contributionsByMonth[year][month] === undefined) {
+      contributionsByMonth[year][month] = 0;
     }
-    commitsByMonth[year][month]++;
+    contributionsByMonth[year][month]++;
   }
 
-  return commitsByMonth;
+  return contributionsByMonth;
 };
 
-const accumulatedTotalCommitsByDay = async (from, to) => {
-  let users = await User.find({}, "commit_contributions");
-  let commitsList = [];
+const accumulatedTotalContributionsByDay = async (from, to) => {
+  let users = await User.find(
+    {},
+    "commit_contributions issue_contributions pr_contributions code_review_contributions"
+  );
+  let contributionsList = [];
   for (const user of users) {
     for (const repo of user.commit_contributions) {
       for (const commit of repo.commits) {
         if (commit.occurredAt >= from && commit.occurredAt <= to) {
-          commitsList.push(commit);
+          contributionsList.push(commit);
+        }
+      }
+    }
+    for (const repo of user.issue_contributions) {
+      for (const issue of repo.issues) {
+        if (issue.occurredAt >= from && issue.occurredAt <= to) {
+          contributionsList.push(issue);
+        }
+      }
+    }
+    for (const repo of user.pr_contributions) {
+      for (const pullRequest of repo.pullRequests) {
+        if (pullRequest.occurredAt >= from && pullRequest.occurredAt <= to) {
+          contributionsList.push(pullRequest);
+        }
+      }
+    }
+    for (const repo of user.code_review_contributions) {
+      for (const codeReview of repo.codeReviews) {
+        if (codeReview.occurredAt >= from && codeReview.occurredAt <= to) {
+          contributionsList.push(codeReview);
         }
       }
     }
   }
 
-  let commitsByDay = {};
-  for (const commit of commitsList) {
-    let date = new Date(commit.occurredAt);
+  let contributionsByDay = {};
+  for (const contribution of contributionsList) {
+    let date = new Date(contribution.occurredAt);
     let day = date.getDate();
     let month = date.getMonth();
     let year = date.getFullYear();
-    if (commitsByDay[year] === undefined) {
-      commitsByDay[year] = {};
+    if (contributionsByDay[year] === undefined) {
+      contributionsByDay[year] = {};
     }
-    if (commitsByDay[year][month] === undefined) {
-      commitsByDay[year][month] = new Array(
+    if (contributionsByDay[year][month] === undefined) {
+      contributionsByDay[year][month] = new Array(
         Number(getDaysInAMonth(month, year))
       ).fill(0);
     }
-    if (commitsByDay[year][month][day] === undefined) {
-      commitsByDay[year][month][day] = 0;
+    if (contributionsByDay[year][month][day] === undefined) {
+      contributionsByDay[year][month][day] = 0;
     }
-    commitsByDay[year][month][day]++;
+    contributionsByDay[year][month][day]++;
   }
 
-  return commitsByDay;
+  return contributionsByDay;
 };
 
 /**
@@ -337,10 +407,10 @@ const accumulatedTotalCommitsByDay = async (from, to) => {
  *          description: Check your internet connection and try again
  */
 router.get("/contributions", async (req, res) => {
-  let commits_last_30_days = await countLast30DaysCommits();
+  let contributions_last_30_days = await countLast30DaysContributions();
   res.status(200).json({
     success: true,
-    commits_last_30_days,
+    contributions_last_30_days,
   });
 });
 
@@ -414,10 +484,10 @@ router.get("/contributors/stats", async (req, res) => {
         }
         break;
 
-      case "commits":
+      case "contributions":
         switch (aggregation) {
           case "month":
-            const commitsByMonth = await accumulatedTotalCommitsByMonth(
+            const commitsByMonth = await accumulatedTotalContributionsByMonth(
               periodArray[0],
               periodArray[1]
             );
@@ -428,7 +498,7 @@ router.get("/contributors/stats", async (req, res) => {
             break;
 
           case "day":
-            const commitsByDay = await accumulatedTotalCommitsByDay(
+            const commitsByDay = await accumulatedTotalContributionsByDay(
               periodArray[0],
               periodArray[1]
             );
