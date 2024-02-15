@@ -8,7 +8,7 @@
   <h3 align="center">contributions-api</h3>
 
   <p align="center">
-     The web client for the Jordan Top Contributors website.
+     The Api client for the Jordan Top Contributors website.
     <br />
     <a href="https://github.com/jordanopensource/contributions-api"><strong>Explore the docs »</strong></a>
     <br />
@@ -38,7 +38,7 @@
       <ul>
         <li><a href="#prerequisites">Prerequisites</a></li>
         <li><a href="#installation">Installation</a></li>
-        <li><a href="#running">Installation</a></li>
+        <li><a href="#running">Running</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
@@ -50,19 +50,19 @@
   </ol>
 </details>
 
-
-
 <!-- ABOUT THE PROJECT -->
+
 ## About The Project
 
-This is a Nuxtjs web client for the Jordan Top Contributors Website, a website that displays the top contributors to open source repositories in Jordan.
+This is a Express api client for the Jordan Top Contributors Website, a website that displays the top contributors to open source repositories in Jordan.
 
 ### Built With
 
-* [Nuxt.js](https://nuxtjs.org)
-* [Tailwind CSS](https://tailwindcss.com/)
+- [Express](https://expressjs.com/)
+- [MongoDB](https://www.mongodb.com/)
 
 <!-- GETTING STARTED -->
+
 ## Getting Started
 
 To get a local copy up and running follow these simple steps.
@@ -88,7 +88,13 @@ To get a local copy up and running follow these simple steps.
 
 To run the project locally for development purposes:
 
-1. Run the project
+1. Copy the env file and change the values inside
+
+```sh
+$ cp .env.sample config.env
+```
+
+2. Run the project
 
 ```sh
 $ npm run dev
@@ -96,31 +102,24 @@ $ npm run dev
 
 2. Go to `http://localhost:3000`
 
-
 #### Production
 
 To build and run the project locally for production purposes:
 
-1. Build the project
-
-```sh
-$ npm run build
-```
-
-2. Launch the production server
+1. Launch the production server
 
 ```sh
 $ npm run start
 ```
 
 <!-- ROADMAP -->
+
 ## Roadmap
 
 See the [open issues](https://github.com/jordanopensource/contributions-api/issues) for a list of proposed features (and known issues).
 
-
-
 <!-- CONTRIBUTING -->
+
 ## Contributing
 
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
@@ -131,14 +130,14 @@ Contributions are what make the open source community such an amazing place to l
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
-
-
 <!-- LICENSE -->
+
 ## License
 
 Distributed under the Apache License. See `LICENSE` for more information.
 
 <!-- CONTACT -->
+
 ## Contact
 
 Jordan Open Source Association - [@jo_osa](https://twitter.com/@jo_osa) - info@josa.ngo
