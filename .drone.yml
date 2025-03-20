@@ -3,3 +3,4 @@ load: container.jsonnet
 data:
   repositoryName: josaorg/contributions-api
   releaseName: contributions-api
+  buildArgs:
