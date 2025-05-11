@@ -15,9 +15,9 @@
     <br />
     <!-- <a href="https://josa.ngo">Visit the Portal</a> -->
     ·
-    <a href="https://github.com/jordanopensource/contributions-api/issues">Report Bug</a>
+    <a href="https://github.com/jordanopensource/contributions-api/issues">Report a Bug</a>
     ·
-    <a href="https://github.com/jordanopensource/contributions-api/issues">Request Feature</a>
+    <a href="https://github.com/jordanopensource/contributions-api/issues">Request a Feature</a>
   </p>
 </p>
 
