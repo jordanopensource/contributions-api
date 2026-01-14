@@ -1,9 +1,9 @@
-ARG DATABASE_HOST=localhost DATABASE_PORT=27017 DATABASE_NAME=top-contributors HOST=localhost PORT=8080 NODE_ENV=dev USER=node TLS_ENABLED=true CA_PATH='/certificates/do-mongodb-ca-certificate.crt'
+ARG NODE_VERSION=24 DATABASE_HOST=localhost DATABASE_PORT=27017 DATABASE_NAME=top-contributors HOST=localhost PORT=8080 NODE_ENV=dev USER=node TLS_ENABLED=true CA_PATH='/certificates/do-mongodb-ca-certificate.crt'
 
 ###########
 # BUILDER #
 ###########
-FROM node:16-alpine3.14 AS builder
+FROM node:${NODE_VERSION}-alpine AS builder
 
 # pass the global args
 ARG DATABASE_HOST
@@ -27,7 +27,7 @@ RUN npm install
 ###########
 # PROJECT #
 ###########
-FROM node:16-slim
+FROM node:${NODE_VERSION}-slim
 
 # pass the global args
 ARG DATABASE_HOST
